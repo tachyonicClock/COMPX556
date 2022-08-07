@@ -46,8 +46,6 @@ Item BLHeuristic(Item to_place, const std::vector<Item> &placed_rects)
                 min_distance = distance;
                 closest_y = other_rect.top();
                 // std::cout << "Dropped onto rectangle " << other_rect.id << " at " << other_rect.left() << ", " << other_rect.top() << std::endl;
-                if (distance == 0)
-                    break;
             }
         }
         if(to_place.bottom() == closest_y)
@@ -68,8 +66,6 @@ Item BLHeuristic(Item to_place, const std::vector<Item> &placed_rects)
                 min_distance = distance;
                 closest_x = other_rect.right();
                 // std::cout << "Slid onto rectangle " << other_rect.id << " at " << other_rect.left() << ", " << other_rect.top() << std::endl;
-                if (distance == 0)
-                    break;
             }
         }
         if(to_place.right() == closest_x)

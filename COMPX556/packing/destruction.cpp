@@ -75,19 +75,19 @@ std::vector<int> Destroy(DestructionMethod method, float fraction, const Unplace
         case AREA_ASC:
             return SomeFraction(fraction, SortByArea(items));
         case AREA_DESC:
-            return Reverse(SomeFraction(fraction, SortByArea(items)));
+            return SomeFraction(fraction, Reverse(SortByArea(items)));
         case ASPECT_RATIO_ASC:
             return SomeFraction(fraction, SortByAspectRatio(items));
         case ASPECT_RATIO_DESC:
-            return Reverse(SomeFraction(fraction, SortByAspectRatio(items)));
+            return SomeFraction(fraction, Reverse(SortByAspectRatio(items)));
         case HEIGHT_ASC:
             return SomeFraction(fraction, SortByHeight(items));
         case HEIGHT_DESC:
-            return Reverse(SomeFraction(fraction, SortByHeight(items)));
+            return SomeFraction(fraction, Reverse(SortByHeight(items)));
         case WIDTH_ASC:
             return SomeFraction(fraction, SortByWidth(items));
         case WIDTH_DESC:
-            return Reverse(SomeFraction(fraction, SortByWidth(items)));
+            return SomeFraction(fraction, Reverse(SortByWidth(items)));
         case RANDOM:
             // return Random(items);
             return SomeFraction(fraction, Random(items));

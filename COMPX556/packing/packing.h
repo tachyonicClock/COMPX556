@@ -89,12 +89,6 @@ PlacedItems BLPackItems(const UnplacedItems &items);
 Item BLHeuristic(Item to_place, const std::vector<Item> &placed_rects);
 
 
-enum FitnessVariant {
-    PACKING_EFFICIENCY,
-    SUM_Y,
-    PACKING_HEIGHT
-};
-
 float Fitness(const PlacedItems &items);
 
 inline void LogIteration(

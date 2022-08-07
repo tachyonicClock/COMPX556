@@ -184,9 +184,9 @@ int main(int argc, char const *argv[])
     else if (algorithm == "LS")
         best_placement = LocalSearch(unplaced);
     else if (algorithm == "LNS")
-        best_placement = LargeNeighborhoodSearch(unplaced, 0.1, max_iterations, true);
+        best_placement = LargeNeighborhoodSearch(unplaced, 0.1, max_iterations, simulated_annealing);
     else if (algorithm == "ALNS")
-        best_placement = AdaptiveLargeNeighborhoodSearch(unplaced, 0.1, max_iterations, true);
+        best_placement = AdaptiveLargeNeighborhoodSearch(unplaced, 0.1, max_iterations, simulated_annealing);
     else
     {
         std::cout << "Unknown algorithm: " << algorithm << std::endl;
