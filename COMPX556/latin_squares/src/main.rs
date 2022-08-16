@@ -11,22 +11,20 @@ struct Cli {
 #[derive(Subcommand)]
 enum Commands {
     /// Generate a new latin square
-    GenSquare {
+    Validate {
         /// Size of the square
         #[clap(value_parser)]
-        order: usize,
+        filename: String,
     },
 }
 
 fn main() {
     let cli = Cli::parse();
     match &cli.command {
-        Commands::GenSquare { order } => {
-            println!("Generating {}x{} latin square:", order, order);
-
-            let square = Square::new(*order);
-
+        Commands::Validate { filename } => {
+            let square = Square::from_json(&filename);
             println!("{}", square);
+            println!("Score: {} (0 is a valid latin square)", square.score_square());
         }
     }
 }
