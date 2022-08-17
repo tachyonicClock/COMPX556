@@ -1,7 +1,13 @@
 // #!feature(test)
 use clap::{Parser, Subcommand};
+#[macro_use] extern crate itertools;
+
+mod square;
 mod grasp;
-use grasp::square::Square;
+mod local_search;
+use crate::square::Square;
+
+use local_search::local_search;
 
 #[derive(Parser)]
 struct Cli {
@@ -18,14 +24,21 @@ enum Commands {
     },
     /// Turn a complete latin square into a partial latin square
     Partial {
-
         #[clap(value_parser)]
         proportion: f32,
         #[clap(value_parser)]
         in_filename: String,
         #[clap(value_parser)]
-        out_filename: String,
-
+        out_filename: Option<String>,
+    },
+    /// Turn a complete latin square into a partial latin square
+    Solve {
+        #[clap(value_parser)]
+        alpha: f32,
+        #[clap(value_parser)]
+        in_filename: String,
+        #[clap(value_parser)]
+        out_filename: Option<String>,
     },
 }
 
@@ -42,7 +55,35 @@ fn main() {
             let partial_square = square.make_partial(*proportion);
             println!("{}", partial_square);
             println!("Score: {} (0 is a valid latin square)", partial_square.score_square());
-            partial_square.to_json(out_filename);
+
+            if let Some(out_filename) = out_filename {
+                println!("Saving to {}", out_filename);
+                partial_square.to_json(out_filename);
+            }
+        }
+        Commands::Solve { alpha, in_filename, out_filename } => {
+            let square = Square::from_json(in_filename);
+            println!("======= BEFORE ======");
+            println!("{}", square);
+            println!("Score: {} (0 is a valid latin square)", square.score_square());
+            let square = grasp::greedy_randomized_construction(*alpha, &square);
+            grasp::repair(&square);
+            println!("======= AFTER ======");
+            println!("{}", square);
+            println!("Score: {} (0 is a valid latin square)", square.score_square());
+
+            let square = local_search(&square);
+
+            println!("======= AFTER LS ======");
+            println!("{}", square);
+            println!("Score: {} (0 is a valid latin square)", square.score_square());
+
+            
+
+            if let Some(out_filename) = out_filename {
+                println!("Saving to {}", out_filename);
+                square.to_json(out_filename);
+            }
         }
     }
 }

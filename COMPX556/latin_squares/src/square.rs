@@ -95,6 +95,25 @@ impl Square {
         return partial_square;
     }
 
+    pub fn swap(&mut self, row1: usize, col1: usize, row2: usize, col2: usize) {
+        let temp = self.data[row1][col1];
+        self.data[row1][col1] = self.data[row2][col2];
+        self.data[row2][col2] = temp;
+    }
+
+    pub fn swap_row(&mut self, row1: usize, row2: usize) {
+        for col in 0..self.size {
+            self.swap(row1, col, row2, col);
+        }
+    }
+
+    pub fn swap_col(&mut self, col1: usize, col2: usize) {
+        for row in 0..self.size {
+            self.swap(row, col1, row, col2);
+        }
+    }
+
+
     /// Check a row for duplicates
     fn check_row(&self, row: usize) -> u32 {
         let mut exists = vec![false; self.size];
