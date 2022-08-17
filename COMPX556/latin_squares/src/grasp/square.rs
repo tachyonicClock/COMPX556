@@ -2,7 +2,7 @@ use json;
 use std::fmt;
 use std::io::{Read, Write};
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, PartialEq, Eq, Hash)]
 pub enum SquareItem {
     Empty,
     Treatment(u32),
@@ -11,8 +11,8 @@ pub enum SquareItem {
 #[derive(Clone)]
 /// A square of symbols. Can contain latin squares.
 pub struct Square {
-    data: Vec<Vec<SquareItem>>,
-    size: usize,
+    pub data: Vec<Vec<SquareItem>>,
+    pub size: usize,
 }
 
 impl Square {
@@ -158,22 +158,28 @@ impl From<SquareItem> for json::JsonValue {
 
 
 #[cfg(test)]
-mod tests {
+pub mod tests {
     use rand::Rng;
 
-    const COMPLETE_SQUARES: [&str;6] = [
-        "data/complete/LatinSquare5.json",
-        "data/complete/LatinSquare8.json",
-        "data/complete/LatinSquare10.json",
-        "data/complete/LatinSquare15.json",
-        "data/complete/LatinSquare20.json",
-        "data/complete/LatinSquare50.json",
+    macro_rules! project_path {
+        ($filename:expr) => {
+            concat!(env!("CARGO_MANIFEST_DIR"), "/", $filename)
+        };
+    }
+
+    pub const COMPLETE_SQUARES: [&'static str;6] = [
+        project_path!("/data/complete/LatinSquare05.json"),
+        project_path!("/data/complete/LatinSquare08.json"),
+        project_path!("/data/complete/LatinSquare10.json"),
+        project_path!("/data/complete/LatinSquare15.json"),
+        project_path!("/data/complete/LatinSquare20.json"),
+        project_path!("/data/complete/LatinSquare50.json"),
     ];
 
     #[test]
     fn score_complete_squares() {
         for filename in COMPLETE_SQUARES.iter() {
-            let square = super::Square::from_json(filename);
+            let square = super::Square::from_json(&filename);
             assert_eq!(square.score_square(), 0);
         }
     }
@@ -190,7 +196,8 @@ mod tests {
         let mut rng = rand::thread_rng();
 
         for filename in COMPLETE_SQUARES.iter() {
-            let mut square = super::Square::from_json(filename);
+            println!("{}", filename);
+            let mut square = super::Square::from_json(&filename);
             // Randomly swap n elements
             for _ in 0..n {
                 let i = rng.gen_range(0..square.size);

@@ -1,6 +1,7 @@
+// #!feature(test)
 use clap::{Parser, Subcommand};
-mod square;
-use square::Square;
+mod grasp;
+use grasp::square::Square;
 
 #[derive(Parser)]
 struct Cli {
