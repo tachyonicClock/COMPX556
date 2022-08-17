@@ -1,8 +1,10 @@
+use std::{collections::HashMap, hash::Hash, time::Instant};
+
 use rand::seq::SliceRandom;
 
 pub mod square;
 
-#[derive(Clone, Copy, PartialEq, Eq)]
+#[derive(Clone, Copy, PartialEq, Eq, Hash)]
 pub struct Candidate {
     row: usize,
     col: usize,
@@ -19,11 +21,14 @@ impl Candidate {
     }
 }
 
+type Cost = u32;
+type CandidateSet = HashMap<Candidate, Cost>;
+
 /// Calculate the cost of a given candidate O(n)
-pub fn incremental_cost(candidate: &Candidate, square: &square::Square) -> i32 {
+pub fn incremental_cost(candidate: &Candidate, square: &square::Square) -> Cost {
     let mut cost = 0;
 
-    // Look for duplicate in row
+    // Look for duplicates in row and column
     for i in 0..square.size {
         cost += if square.data[candidate.row][i] == candidate.treatment {1} else {0};
         cost += if square.data[i][candidate.col] == candidate.treatment {1} else {0};
@@ -35,13 +40,14 @@ pub fn incremental_cost(candidate: &Candidate, square: &square::Square) -> i32 {
 /// Generate a vector of all possible candidates for a square
 /// Runs in n^2 and generates approximately n^3 candidates (less when more of the
 /// square is filled)
-pub fn generate_candidate_ground_set(square: &square::Square) -> Vec<Candidate> {
-    let mut candidates = Vec::new();
+pub fn generate_candidate_ground_set(square: &square::Square) -> CandidateSet {
+    let mut candidates = CandidateSet::new();
     for i in 0..square.size {
         for j in 0..square.size {
             if matches!(square.data[i][j], square::SquareItem::Empty) {
                 for t in 0..square.size {
-                    candidates.push(Candidate { row: i, col: j, treatment: square::SquareItem::Treatment(t as u32)});
+                    let treatment =  square::SquareItem::Treatment(t as u32);
+                    candidates.insert(Candidate::new(i, j, treatment), u32::MAX);
                 }
             }
         }
@@ -49,14 +55,23 @@ pub fn generate_candidate_ground_set(square: &square::Square) -> Vec<Candidate> 
     return candidates;
 }
 
-pub fn create_restricted_candidate_list(alpha: f32, candidates: &Vec<Candidate>, candidate_cost: &Vec<i32>) -> Vec<Candidate> {
-    let min_cost = candidate_cost.iter().min().unwrap();
-    let max_cost = candidate_cost.iter().max().unwrap();
-    let threshold = min_cost + ((alpha*((max_cost-min_cost) as f32)) as i32);
+pub fn create_restricted_candidate_list(alpha: f32, candidates: &CandidateSet) -> Vec<Candidate> {
+    let mut min_cost = Cost::MAX;
+    let mut max_cost = Cost::MIN;
+    for cost in candidates.values() {
+        if *cost < min_cost {
+            min_cost = *cost;
+        }
+        if *cost > max_cost {
+            max_cost = *cost;
+        }
+    }
+
+    let threshold = min_cost + ((alpha*((max_cost-min_cost) as f32)) as Cost);
 
     let mut candidate_list = Vec::new();
-    for (i, candidate) in candidates.iter().enumerate() {
-        if candidate_cost[i] <= threshold {
+    for (candidate, score) in candidates {
+        if *score <= threshold {
             candidate_list.push(*candidate);
         }
     }
@@ -64,12 +79,11 @@ pub fn create_restricted_candidate_list(alpha: f32, candidates: &Vec<Candidate>,
     return candidate_list;
 }
 
-fn evaluate_candidates(candidates: &Vec<Candidate>, square: &square::Square) -> Vec<i32> {
-    let mut candidate_cost = Vec::new();
-    for candidate in candidates {
-        candidate_cost.push(incremental_cost(candidate, square));
+fn evaluate_candidates(candidates: &mut CandidateSet, square: &square::Square) {
+    // Update candidate scores
+    for (candidate, cost) in candidates.iter_mut() {
+        *cost = incremental_cost(candidate, square);
     }
-    return candidate_cost;
 }
 
 /// Greedy randomized
@@ -79,23 +93,37 @@ pub fn greedy_randomized_construction(alpha: f32, square: &square::Square) -> sq
 
     // Initialize candidate set
     let mut candidates = generate_candidate_ground_set(&square);
+    evaluate_candidates(&mut candidates, &square);
     
     // While construction is possible
     while !candidates.is_empty() {
         // Evaluate the candidates
-        let candidate_cost = evaluate_candidates(&candidates, &square);
         
-        // Create a restricted candidate list
-        let restricted_candidates = create_restricted_candidate_list(alpha, &candidates, &candidate_cost);
-
+        let start = Instant::now(); 
+        // Create a restricted candidate list 14ms 2n^3
+        let restricted_candidates = create_restricted_candidate_list(alpha, &candidates);
+        println!("{:?} {}", start.elapsed(), candidates.len());
+        
+        
         // Pick a random candidate from the restricted candidate list
         let candidate = restricted_candidates.choose(&mut rng).unwrap();
-
+        
         // Update treatment in square
         square.data[candidate.row][candidate.col] = candidate.treatment;
         
-        // Update candidate set
-        candidates.retain(|x| x.row != candidate.row && x.col != candidate.col);
+        // Update candidate set and update costs approx 100µs
+        let mut to_remove = candidate.clone();
+        for i in 0..square.size {
+            let treatment = square::SquareItem::Treatment(i as u32);
+            to_remove.treatment = treatment;
+            candidates.remove(&to_remove);
+
+            // Incrementally update the score
+            let candidate_col = Candidate::new(candidate.row, i, candidate.treatment);
+            let candidate_row = Candidate::new(i, candidate.col, candidate.treatment);
+            candidates.get_mut(&candidate_col).map(|cost| *cost += 1);
+            candidates.get_mut(&candidate_row).map(|cost| *cost += 1);
+        }
     }
 
     return square;
@@ -105,9 +133,8 @@ pub fn greedy_randomized_construction(alpha: f32, square: &square::Square) -> sq
 
 #[cfg(test)]
 mod tests {
-    use crate::grasp::{square, Candidate};
     use std::time::{Duration, Instant};
-
+    use crate::grasp::{CandidateSet, Cost, square, square::SquareItem, Candidate};
 
     #[test]
     fn empty_ground_set() {
@@ -157,16 +184,15 @@ mod tests {
     fn restricted_candidate_list() {
         let alpha = 0.2;
         // let candidate = super::Candidate { row: 0, col: 0, treatment: square::SquareItem::Treatment(0)};
-        let mut candidates = Vec::new();
+        let mut candidates = CandidateSet::new();
         for t in 0..10 {
-            candidates.push(super::Candidate::new(0, 0, square::SquareItem::Treatment(t as u32)));
+            candidates.insert(Candidate::new(0, 0, SquareItem::Treatment(t as u32)), t as Cost);
         }
 
-        let candidate_cost = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9].to_vec();
-        let restricted_candidates = super::create_restricted_candidate_list(alpha, &candidates, &candidate_cost);
+        let restricted_candidates = super::create_restricted_candidate_list(alpha, &candidates);
         assert_eq!(restricted_candidates.len(), 2);
-        assert!(restricted_candidates.contains(&candidates[0]));
-        assert!(restricted_candidates.contains(&candidates[1]));
+        assert!(restricted_candidates.contains(&Candidate::new(0, 0, SquareItem::Treatment(0))));
+        assert!(restricted_candidates.contains(&Candidate::new(0, 0, SquareItem::Treatment(1))));
     }
 
     #[test]
