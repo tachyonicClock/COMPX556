@@ -1,7 +1,9 @@
-use std::{collections::HashMap, hash::Hash, time::Instant};
+use std::{collections::HashMap, hash::Hash, time::Duration};
 
+use indicatif::{ProgressBar, ProgressStyle};
 use rand::seq::SliceRandom;
-use crate::square::{SquareItem, Square};
+use std::time::{SystemTime};
+use crate::{square::{SquareItem, Square}, local_search::local_search};
 
 
 #[derive(Clone, Copy, PartialEq, Eq, Hash)]
@@ -214,7 +216,6 @@ pub fn repair(square: &Square) -> Square {
             &mut square, 
             SquareItem::Treatment(most_common_treatment as u32), 
             SquareItem::Treatment(least_common_treatment as u32));
-        println!("Repaired cell");
 
         counts[most_common_treatment] -= 1;
         counts[least_common_treatment] += 1;
@@ -224,10 +225,53 @@ pub fn repair(square: &Square) -> Square {
     return square;
 }
 
+fn grasp_iteration(square: &Square, alpha: f32) -> Square {
+    let mut square = greedy_randomized_construction(alpha, &square.clone());
+    square = repair(&square);
+    return local_search(&square);
+}
+
+pub fn run_grasp(square: &Square, alpha: f32, max_duration: Duration) -> Square {
+    // Get start time to ensure we don't exceed max_duration
+    let start_time = SystemTime::now();
+    let mut best_square = grasp_iteration(&square, alpha);
+    let mut best_score = square.score_square();
+    let mut elapsed = start_time.elapsed().unwrap();
+    let mut iterations = 1.0;
+    let pb_len = 1000.0;
+
+    let style = ProgressStyle::with_template("{bar:40.cyan/blue} {pos:>7}/{len:7} {msg}").unwrap();
+    let pb = ProgressBar::new(pb_len as u64).with_message("GRASP").with_style(style);
+    pb.println(format!("Running grasp for up to {:.2?} seconds", max_duration));
+
+    while elapsed < max_duration && best_score != 0 {
+        let square = grasp_iteration(&square, alpha);
+        let score = square.score_square();
+        iterations += 1.0;
+
+        if score < best_score {
+            best_square = square;
+            best_score = score;
+        }
+        
+        // println!("{:.1?} {} {}", elapsed,  i, score);
+        elapsed = start_time.elapsed().unwrap();
+        
+        let progress = elapsed.as_secs_f32()/max_duration.as_secs_f32();
+        pb.set_position((progress * pb_len) as u64);
+        pb.set_message(format!("Score: {}, {:.1} its/s", best_score, iterations/elapsed.as_secs_f32()));
+    }
+
+    println!("Finished after {:.0} iterations", iterations);
+
+    return best_square;
+}
+
+
 
 #[cfg(test)]
 mod tests {
-    use std::time::{Duration, Instant};
+    use std::time::{Instant};
     use crate::square::{SquareItem, Square, tests};
     use crate::grasp::{CandidateSet, Cost, Candidate, repair};
 

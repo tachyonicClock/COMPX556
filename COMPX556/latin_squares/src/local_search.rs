@@ -1,18 +1,13 @@
-use rand::Rng;
-
-use crate::square::Square;
+use crate::square::{Square, SquareItem};
 
 
 pub fn local_search(square: &Square) -> Square {
-    let mut rng = rand::thread_rng();
     let mut square = square.clone();
     let mut best_square = square.clone();
     let mut best_score = square.score_square();
 
     let mut improvement = true;
     let n = square.size;
-    let total = n.pow(3)/2;
-    println!("Iterations {}", total);
     while improvement {
         improvement = false;
 
@@ -22,9 +17,15 @@ pub fn local_search(square: &Square) -> Square {
             let y = if use_rows {i} else {j};
             let yy = if use_rows {i} else {k};
 
+            if matches!(square.data[x][y], SquareItem::Frozen(_)) ||
+               matches!(square.data[xx][yy], SquareItem::Frozen(_)) {
+                continue;
+            }
+
             let old_score = 
                 square.check_col(x) + square.check_col(xx) + 
                 square.check_row(y) + square.check_row(yy);
+
 
             square.swap(x, y, xx, yy);
 
@@ -38,49 +39,11 @@ pub fn local_search(square: &Square) -> Square {
                     best_square = square.clone();
                     best_score = score;
                     improvement = true;
-                    println!("Found improvement {}", best_score);
                     break
                 }
             }
             square.swap(x, y, xx, yy);
         }
-
-        // 4 Random numbers
-        // for iter in 0..100_000 {
-        //     let i = rng.gen_range(0..n/2);
-        //     let ii = rng.gen_range(n/2..n);
-        //     let j = rng.gen_range(0..n/2);
-        //     let jj = rng.gen_range(n/2..n);
-
-        //     let old_score = 
-        //         square.check_col(j) + square.check_col(jj) + 
-        //         square.check_row(i) + square.check_row(ii);
-
-        //     // Swap the two numbers
-        //     square.swap(i, j, ii, jj);
-
-        //     let new_score = 
-        //         square.check_col(j) + square.check_col(jj) + 
-        //         square.check_row(i) + square.check_row(ii);
-
-        //     if new_score < old_score {
-        //         best_square = square.clone();
-        //         best_score = square.score_square();
-        //         improvement = true;
-        //         println!("{} Improvement {}", iter, best_score);
-        //         break;
-        //     }
-
-        //     square.swap(i, j, ii, jj);
-        // }
-
-        // for (i, ii, j, jj) in iproduct!(0..half_n, 0..half_n, half_n..n, half_n..n) {
-
-        //     square.swap(i, j, ii, jj);
-
-        //     // Swap back
-        //     square.swap(i, j, ii, jj);
-        // }
         square = best_square.clone();
     }
     return square;

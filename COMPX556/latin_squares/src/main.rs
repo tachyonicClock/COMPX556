@@ -1,3 +1,5 @@
+use std::time::Duration;
+
 // #!feature(test)
 use clap::{Parser, Subcommand};
 #[macro_use] extern crate itertools;
@@ -6,8 +8,6 @@ mod square;
 mod grasp;
 mod local_search;
 use crate::square::Square;
-
-use local_search::local_search;
 
 #[derive(Parser)]
 struct Cli {
@@ -36,6 +36,8 @@ enum Commands {
         #[clap(value_parser)]
         alpha: f32,
         #[clap(value_parser)]
+        max_duration: f32,
+        #[clap(value_parser)]
         in_filename: String,
         #[clap(value_parser)]
         out_filename: Option<String>,
@@ -61,24 +63,18 @@ fn main() {
                 partial_square.to_json(out_filename);
             }
         }
-        Commands::Solve { alpha, in_filename, out_filename } => {
+        Commands::Solve { alpha, in_filename, max_duration, out_filename } => {
             let square = Square::from_json(in_filename, true);
-            println!("======= BEFORE ======");
-            println!("{}", square);
-            println!("Score: {} (0 is a valid latin square)", square.score_square());
-            let square = grasp::greedy_randomized_construction(*alpha, &square);
-            let square = grasp::repair(&square);
-            println!("======= AFTER ======");
-            println!("{}", square);
-            println!("Score: {} (0 is a valid latin square)", square.score_square());
+            let old_score = square.score_square() as f32;
 
-            let square = local_search(&square);
+            // float to duration
+            let max_duration = Duration::from_secs_f32(*max_duration);
+            let square = grasp::run_grasp(&square, *alpha, max_duration);
+            let new_score = square.score_square() as f32;
+            let percentage_change = (new_score - old_score) / old_score * 100.0;
 
-            println!("======= AFTER LS ======");
             println!("{}", square);
-            println!("Score: {} (0 is a valid latin square)", square.score_square());
-
-            
+            println!("Score: {} -> {} {}%", old_score, new_score, percentage_change);
 
             if let Some(out_filename) = out_filename {
                 println!("Saving to {}", out_filename);
