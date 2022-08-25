@@ -6,6 +6,7 @@ use std::io::{Read, Write};
 pub enum SquareItem {
     Empty,
     Treatment(u32),
+    Frozen(u32),
 }
 
 #[derive(Clone)]
@@ -29,7 +30,7 @@ impl Square {
     }
 
     /// Create square from json file
-    pub fn from_json(filename: &str) -> Square {
+    pub fn from_json(filename: &str, freeze: bool) -> Square {
         // Load from json
         let mut file = std::fs::File::open(filename).expect("File not found");
         let mut contents = String::new();
@@ -53,6 +54,10 @@ impl Square {
                 }
             }
         }
+        if freeze {
+            square.freeze();
+        }
+
         return square;
     }
 
@@ -61,6 +66,18 @@ impl Square {
         let json_string = json::stringify(self.data.clone());
         let mut file = std::fs::File::create(filename).expect("Could not create file");
         file.write_all(json_string.as_bytes()).expect("Could not write to file");
+    }
+
+
+    pub fn freeze(&mut self) {
+        for (i, j) in iproduct!(0..self.size, 0..self.size) {
+            match self.data[i][j] {
+                SquareItem::Treatment(t) => {
+                    self.data[i][j] = SquareItem::Frozen(t);
+                }
+                _ => {}
+            }
+        }
     }
 
     /// Score square ensures that the square is a valid latin square
@@ -101,21 +118,8 @@ impl Square {
         self.data[row2][col2] = temp;
     }
 
-    pub fn swap_row(&mut self, row1: usize, row2: usize) {
-        for col in 0..self.size {
-            self.swap(row1, col, row2, col);
-        }
-    }
-
-    pub fn swap_col(&mut self, col1: usize, col2: usize) {
-        for row in 0..self.size {
-            self.swap(row, col1, row, col2);
-        }
-    }
-
-
     /// Check a row for duplicates
-    fn check_row(&self, row: usize) -> u32 {
+    pub fn check_row(&self, row: usize) -> u32 {
         let mut exists = vec![false; self.size];
         
         for col in 0..self.size {
@@ -125,6 +129,9 @@ impl Square {
                 SquareItem::Treatment(value) => {
                     exists[value as usize] = true;
                 }
+                SquareItem::Frozen(value) => {
+                    exists[value as usize] = true;
+                }
             }
         }
         // Count the number of false values in the vector
@@ -132,13 +139,16 @@ impl Square {
     }
     
     /// Check a column for duplicates
-    fn check_col(&self, col: usize) -> u32 {
+    pub fn check_col(&self, col: usize) -> u32 {
         let mut exists = vec![false; self.size];
         for row in 0..self.size {
             let value = self.data[row][col];
             match value {
                 SquareItem::Empty => {},
                 SquareItem::Treatment(value) => {
+                    exists[value as usize] = true;
+                }
+                SquareItem::Frozen(value) => {
                     exists[value as usize] = true;
                 }
             }
@@ -156,6 +166,7 @@ impl std::fmt::Display for Square {
                 match self.data[i][j] {
                     SquareItem::Empty => write!(f, " . ")?,
                     SquareItem::Treatment(value) => write!(f, "{:02} ", value)?,
+                    SquareItem::Frozen(value) => write!(f, "{:02} ", value)?,
                 }
             }
             write!(f, "\n\n")?;
@@ -169,6 +180,7 @@ impl From<SquareItem> for json::JsonValue {
         match item {
             SquareItem::Empty => json::JsonValue::String("Empty".to_string()),
             SquareItem::Treatment(value) => json::JsonValue::Number(value.into()),
+            SquareItem::Frozen(value) => json::JsonValue::Number(value.into()),
         }
     }
 }
@@ -198,7 +210,7 @@ pub mod tests {
     #[test]
     fn score_complete_squares() {
         for filename in COMPLETE_SQUARES.iter() {
-            let square = super::Square::from_json(&filename);
+            let square = super::Square::from_json(&filename, true);
             assert_eq!(square.score_square(), 0);
         }
     }
@@ -216,7 +228,7 @@ pub mod tests {
 
         for filename in COMPLETE_SQUARES.iter() {
             println!("{}", filename);
-            let mut square = super::Square::from_json(&filename);
+            let mut square = super::Square::from_json(&filename, true);
             // Randomly swap n elements
             for _ in 0..n {
                 let i = rng.gen_range(0..square.size);

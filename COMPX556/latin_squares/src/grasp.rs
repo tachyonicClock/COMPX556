@@ -60,6 +60,13 @@ pub fn generate_candidate_ground_set(square: &Square) -> CandidateSet {
         for j in 0..square.size {
             match square.data[i][j] {
                 SquareItem::Empty => {},
+                SquareItem::Frozen(t) => {
+                    // Remove treatment as candidate from row and column
+                    for k in 0..square.size {
+                        candidates.remove(&Candidate::new(i, k, SquareItem::Treatment(t)));
+                        candidates.remove(&Candidate::new(k, j, SquareItem::Treatment(t)));
+                    }
+                }
                 SquareItem::Treatment(t) => {
                     // Remove treatment as candidate from row and column
                     for k in 0..square.size {
@@ -74,6 +81,8 @@ pub fn generate_candidate_ground_set(square: &Square) -> CandidateSet {
 }
 
 pub fn create_restricted_candidate_list(alpha: f32, candidates: &CandidateSet) -> Vec<Candidate> {
+    
+
     let mut min_cost = Cost::MAX;
     let mut max_cost = Cost::MIN;
     for cost in candidates.values() {
@@ -152,13 +161,25 @@ pub fn argsort<T: Ord>(data: &[T]) -> Vec<usize> {
 
 
 pub fn replace_treatment(square: &mut Square, old_treatment: SquareItem, new_treatment: SquareItem) {
+    let mut best_i = 0;
+    let mut best_j = 0;
+    let mut best_cost = Cost::MAX;
+
     for i in 0..square.size {
         for j in 0..square.size {
             if square.data[i][j] == old_treatment {
                 square.data[i][j] = new_treatment;
+                let cost = incremental_cost(&Candidate::new(i, j, new_treatment), square);
+                if cost < best_cost {
+                    best_i = i;
+                    best_j = j;
+                    best_cost = cost;
+                }
+                square.data[i][j] = old_treatment;
             }
         }
     }
+    square.data[best_i][best_j] = new_treatment;
 }
 
 pub fn repair(square: &Square) -> Square {
@@ -173,10 +194,11 @@ pub fn repair(square: &Square) -> Square {
                 SquareItem::Treatment(t) => {
                     counts[t as usize] += 1;
                 }
-                SquareItem::Empty => {
-                    // Repair empty squares by filling them naively
-                    square.data[i][j] = SquareItem::Treatment(0);
-                    counts[0] += 1;
+                SquareItem::Frozen(t) => {
+                    counts[t as usize] += 1;
+                }
+                _ => {
+                    panic!("Square should not be empty");
                 }
             }
         }
@@ -192,6 +214,7 @@ pub fn repair(square: &Square) -> Square {
             &mut square, 
             SquareItem::Treatment(most_common_treatment as u32), 
             SquareItem::Treatment(least_common_treatment as u32));
+        println!("Repaired cell");
 
         counts[most_common_treatment] -= 1;
         counts[least_common_treatment] += 1;
@@ -211,7 +234,7 @@ mod tests {
     #[test]
     fn empty_ground_set() {
         for filename in tests::COMPLETE_SQUARES {
-            let square = Square::from_json(&filename);
+            let square = Square::from_json(&filename, true);
             let candidates = super::generate_candidate_ground_set(&square);
             assert_eq!(candidates.len(), 0);
         }
@@ -275,7 +298,7 @@ mod tests {
         for filename in &tests::COMPLETE_SQUARES[0..6] {
             let start = Instant::now();
             println!("{}", filename);
-            let square = Square::from_json(&filename);
+            let square = Square::from_json(&filename, true);
             let square = square.make_partial(proportion);
             let score = square.score_square();
             let square = super::greedy_randomized_construction(0.2, &square);

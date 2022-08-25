@@ -46,12 +46,12 @@ fn main() {
     let cli = Cli::parse();
     match &cli.command {
         Commands::Score { filename } => {
-            let square = Square::from_json(&filename);
+            let square = Square::from_json(&filename, true);
             println!("{}", square);
             println!("Score: {} (0 is a valid latin square)", square.score_square());
         }
         Commands::Partial { proportion, in_filename, out_filename } => {
-            let square = Square::from_json(in_filename);
+            let square = Square::from_json(in_filename, true);
             let partial_square = square.make_partial(*proportion);
             println!("{}", partial_square);
             println!("Score: {} (0 is a valid latin square)", partial_square.score_square());
@@ -62,12 +62,12 @@ fn main() {
             }
         }
         Commands::Solve { alpha, in_filename, out_filename } => {
-            let square = Square::from_json(in_filename);
+            let square = Square::from_json(in_filename, true);
             println!("======= BEFORE ======");
             println!("{}", square);
             println!("Score: {} (0 is a valid latin square)", square.score_square());
             let square = grasp::greedy_randomized_construction(*alpha, &square);
-            grasp::repair(&square);
+            let square = grasp::repair(&square);
             println!("======= AFTER ======");
             println!("{}", square);
             println!("Score: {} (0 is a valid latin square)", square.score_square());
