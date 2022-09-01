@@ -6,6 +6,10 @@ use std::time::{SystemTime};
 use crate::{square::{SquareItem, Square}, local_search::local_search};
 
 
+/**
+ * A candidate is a plausible element of a solution. In a Latin Square
+ * this is a treatment in a specific cell.
+ */
 #[derive(Clone, Copy, PartialEq, Eq, Hash)]
 pub struct Candidate {
     row: usize,
@@ -13,7 +17,15 @@ pub struct Candidate {
     treatment: SquareItem,
 }
 
+// Cost measures the quality of a solution.
+type Cost = u32;
+// A set of all possible candidates and their cost
+type CandidateSet = HashMap<Candidate, Cost>;
+
 impl Candidate {
+    /**
+     * Create a new candidate.
+     */
     pub fn new(row: usize, col: usize, treatment: SquareItem) -> Candidate {
         Candidate {
             row: row,
@@ -23,10 +35,12 @@ impl Candidate {
     }
 }
 
-type Cost = u32;
-type CandidateSet = HashMap<Candidate, Cost>;
-
-/// Calculate the cost of a given candidate O(n)
+/**
+ * Instead of calculating the entire cost of a solution, we can update the cost
+ * of a solution by only looking at the cells that were affected by the change.
+ * 
+ * This is much faster than calculating the entire cost of a solution O(n)
+ */
 pub fn incremental_cost(candidate: &Candidate, square: &Square) -> Cost {
     let mut cost = 0;
 
@@ -39,9 +53,12 @@ pub fn incremental_cost(candidate: &Candidate, square: &Square) -> Cost {
     return cost;
 }
 
-/// Generate a vector of all possible candidates for a square
-/// Runs in n^2 and generates approximately n^3 candidates (less when more of the
-/// square is filled)
+
+/**
+ * Generate a vector of all possible candidates for a square
+ * Runs in n^2 and generates approximately n^3 candidates (less when more of the
+ * square is already filled)
+ */
 pub fn generate_candidate_ground_set(square: &Square) -> CandidateSet {
     let mut candidates = CandidateSet::new();
 
@@ -82,8 +99,13 @@ pub fn generate_candidate_ground_set(square: &Square) -> CandidateSet {
     return candidates;
 }
 
+/**
+ * Returns a subset of the candidate ground set that are the best candidates.
+ * alpha defines how strict the selection is. An alpha of 0.0 is the strictest
+ * and will only return the best candidate. An alpha of 1.0 will return all
+ * candidates.
+ */
 pub fn create_restricted_candidate_list(alpha: f32, candidates: &CandidateSet) -> Vec<Candidate> {
-    
 
     let mut min_cost = Cost::MAX;
     let mut max_cost = Cost::MIN;
@@ -104,10 +126,12 @@ pub fn create_restricted_candidate_list(alpha: f32, candidates: &CandidateSet) -
             candidate_list.push(*candidate);
         }
     }
-
     return candidate_list;
 }
 
+/**
+ * Evaluate each candidate in the candidate set and set their cost.
+ */
 fn evaluate_candidates(candidates: &mut CandidateSet, square: &Square) {
     // Update candidate scores
     for (candidate, cost) in candidates.iter_mut() {
@@ -115,7 +139,10 @@ fn evaluate_candidates(candidates: &mut CandidateSet, square: &Square) {
     }
 }
 
-/// Greedy randomized
+/**
+ * Incrementally select candidates to add to the solution. The selection is
+ * randomized but biased towards candidates with a lower cost.
+ */
 pub fn greedy_randomized_construction(alpha: f32, square: &Square) -> Square {
     let mut rng = rand::thread_rng();
     let mut square = square.clone();
@@ -155,13 +182,10 @@ pub fn greedy_randomized_construction(alpha: f32, square: &Square) -> Square {
     return square;
 }
 
-pub fn argsort<T: Ord>(data: &[T]) -> Vec<usize> {
-    let mut indices = (0..data.len()).collect::<Vec<_>>();
-    indices.sort_by_key(|&i| &data[i]);
-    return indices;
-}
 
-
+/**
+ * Attempt to replace a cell with the old treatment with the new treatment.
+ */
 pub fn replace_treatment(square: &mut Square, old_treatment: SquareItem, new_treatment: SquareItem) {
     let mut best_i = 0;
     let mut best_j = 0;
@@ -184,6 +208,10 @@ pub fn replace_treatment(square: &mut Square, old_treatment: SquareItem, new_tre
     square.data[best_i][best_j] = new_treatment;
 }
 
+/**
+ * A latin square only has hopes of being valid if and only if each treatment
+ * exists n times in total.
+ */
 pub fn repair(square: &Square) -> Square {
     let mut square = square.clone();
     let mut counts = vec![0; square.size];
@@ -225,12 +253,18 @@ pub fn repair(square: &Square) -> Square {
     return square;
 }
 
+/**
+ * Perform randomized construction, repair, and local search.
+ */
 fn grasp_iteration(square: &Square, alpha: f32) -> Square {
     let mut square = greedy_randomized_construction(alpha, &square.clone());
     square = repair(&square);
     return local_search(&square);
 }
 
+/**
+ * Perform Greedy Randomized Adaptive Search Procedures for a given max duration.
+ */
 pub fn run_grasp(square: &Square, alpha: f32, max_duration: Duration) -> Square {
     // Get start time to ensure we don't exceed max_duration
     let start_time = SystemTime::now();
@@ -254,7 +288,6 @@ pub fn run_grasp(square: &Square, alpha: f32, max_duration: Duration) -> Square 
             best_score = score;
         }
         
-        // println!("{:.1?} {} {}", elapsed,  i, score);
         elapsed = start_time.elapsed().unwrap();
         
         let progress = elapsed.as_secs_f32()/max_duration.as_secs_f32();
@@ -265,6 +298,15 @@ pub fn run_grasp(square: &Square, alpha: f32, max_duration: Duration) -> Square 
     println!("Finished after {:.0} iterations", iterations);
 
     return best_square;
+}
+
+/**
+ * Argsort will return the indices that would sort a vector.
+ */
+pub fn argsort<T: Ord>(data: &[T]) -> Vec<usize> {
+    let mut indices = (0..data.len()).collect::<Vec<_>>();
+    indices.sort_by_key(|&i| &data[i]);
+    return indices;
 }
 
 
@@ -283,27 +325,6 @@ mod tests {
             assert_eq!(candidates.len(), 0);
         }
     }
-
-    // #[test]
-    // fn generate_ground_sets() {
-    //     let proportion = 0.2;
-    //     let delta  = 0.2;
-
-    //     // This test is probabilistic so we only run it for large enough squares
-    //     for filename in &square::tests::COMPLETE_SQUARES[4..] {
-    //         let square = Square::from_json(&filename);
-    //         let square = square.make_partial(proportion);
-
-    //         let candidates = super::generate_candidate_ground_set(&square);
-
-    //         println!("{} #candidates {}", filename, candidates.len());
-
-    //         let expectation = ((square.size.pow(3)) as f32)*(proportion);
-
-    //         assert!(candidates.len() as f32 > expectation - (expectation*delta), "Expected {} < {}", expectation, candidates.len());
-    //         assert!(candidates.len() as f32 <= expectation + (expectation*delta), "Expected {} > {}", expectation, candidates.len());
-    //     }
-    // }
 
     #[test]
     fn incremental_cost() {

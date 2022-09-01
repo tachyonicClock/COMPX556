@@ -1,6 +1,17 @@
 use crate::square::{Square, SquareItem};
 
-
+/**
+ * First Improvement Local Search.
+ * 
+ * A natural neighbourhood would be a swap between any two squares, but this
+ * would be too expensive to compute n^2*(n^2)/2 or roughly n^4. Instead, we 
+ * use a neighbourhood that selects a random row or column and swaps the 
+ * position of two squares in that row or column. This is n^3 instead of n^4.
+ * 
+ * Terminates when no improvement is found.
+ * 
+ * Local search is still very costly.
+ */
 pub fn local_search(square: &Square) -> Square {
     let mut square = square.clone();
     let mut best_square = square.clone();
@@ -10,7 +21,7 @@ pub fn local_search(square: &Square) -> Square {
     let n = square.size;
     while improvement {
         improvement = false;
-
+        
         for (i, j, k, use_rows) in iproduct!(0..n, 0..n/2, n/2..n, [true, false]) {
             let x = if use_rows {j} else {i};
             let xx = if use_rows {k} else {i};

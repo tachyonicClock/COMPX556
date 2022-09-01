@@ -19,26 +19,34 @@ struct Cli {
 enum Commands {
     /// Print and score a latin square
     Score {
+        /// Input JSON file
         #[clap(value_parser)]
         filename: String,
     },
     /// Turn a complete latin square into a partial latin square
     Partial {
+        /// Proportion of the square to delete
         #[clap(value_parser)]
         proportion: f32,
+        /// Input JSON file
         #[clap(value_parser)]
         in_filename: String,
+        /// Output JSON file
         #[clap(value_parser)]
         out_filename: Option<String>,
     },
     /// Turn a complete latin square into a partial latin square
     Solve {
+        /// A decimal determining the random to greedy tradeoff: 0 (greedy) and 1 (random)
         #[clap(value_parser)]
         alpha: f32,
+        /// Seconds to run GRASP for
         #[clap(value_parser)]
         max_duration: f32,
+        /// JSON file to read the square from
         #[clap(value_parser)]
         in_filename: String,
+        /// JSON file to write the square to
         #[clap(value_parser)]
         out_filename: Option<String>,
     },
