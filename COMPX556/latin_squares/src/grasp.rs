@@ -140,7 +140,7 @@ fn evaluate_candidates(candidates: &mut CandidateSet, square: &Square) {
 }
 
 /**
- * Incrementally select candidates to add to the solution. The selection is
+ * Incrementally select candidates to add to a solution. The selection is
  * randomized but biased towards candidates with a lower cost.
  */
 pub fn greedy_randomized_construction(alpha: f32, square: &Square) -> Square {
@@ -153,9 +153,8 @@ pub fn greedy_randomized_construction(alpha: f32, square: &Square) -> Square {
     
     // While construction is possible
     while !candidates.is_empty() {
-        // Evaluate the candidates
         
-        // Create a restricted candidate list 14ms 2n^3
+        // Create a restricted candidate
         let restricted_candidates = create_restricted_candidate_list(alpha, &candidates);
         
         // Pick a random candidate from the restricted candidate list
@@ -164,7 +163,7 @@ pub fn greedy_randomized_construction(alpha: f32, square: &Square) -> Square {
         // Update treatment in square
         square.data[candidate.row][candidate.col] = candidate.treatment;
         
-        // Update candidate set and update costs approx 100µs
+        // Update candidate set and update costs approx
         let mut to_remove = candidate.clone();
         for i in 0..square.size {
             let treatment = SquareItem::Treatment(i as u32);

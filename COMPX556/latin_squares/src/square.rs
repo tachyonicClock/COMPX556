@@ -82,14 +82,14 @@ impl Square {
 
     /// Score square ensures that the square is a valid latin square
     pub fn score_square(&self) -> u32 {
-        let mut duplicates = 0;
+        let mut missing_values = 0;
         for row in 0..self.size {
-            duplicates += self.check_row(row);
+            missing_values += self.check_row(row);
         }
         for col in 0..self.size {
-            duplicates += self.check_col(col);
+            missing_values += self.check_col(col);
         }
-        return duplicates;
+        return missing_values;
     }
 
     /// Create a partial square from a complete square
@@ -118,7 +118,7 @@ impl Square {
         self.data[row2][col2] = temp;
     }
 
-    /// Check a row for duplicates
+    /// Check a row for missing values
     pub fn check_row(&self, row: usize) -> u32 {
         let mut exists = vec![false; self.size];
         
@@ -138,7 +138,7 @@ impl Square {
         return exists.iter().filter(|&x| !x).count() as u32;
     }
     
-    /// Check a column for duplicates
+    /// Check a column for missing values
     pub fn check_col(&self, col: usize) -> u32 {
         let mut exists = vec![false; self.size];
         for row in 0..self.size {
