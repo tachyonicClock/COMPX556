@@ -1,3 +1,14 @@
+# Usage
+
+[Ensure rust and cargo are installed](https://doc.rust-lang.org/cargo/getting-started/installation.html). Then run the application using cargo.
+
+```
+cargo run -- --help
+```
+```
+cargo run -- solve 0.1 30 data/benchmarks/Medium.json
+```
+
 ## Methodology
  - Squares are scored by counting the number of duplicates (or missing values) 
    in each row/column. A score of 0 represents a perfect latin square.
