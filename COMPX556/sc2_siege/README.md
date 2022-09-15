@@ -2,8 +2,8 @@
 
 https://github.com/BurnySc2/python-sc2
 
-> Enabling renders requires the full version of SC2 to be installed with
-> through and Battle.net (using WINE on linux). python-sc2 will enable the renderer if it is
+> Enabling renders requires the full version of SC2 to be installed
+> through Battle.net (using WINE on linux). python-sc2 will enable the renderer if it is
 > run with the appropriate environment variables.
 > 
 > ```
