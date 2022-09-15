@@ -2,8 +2,8 @@
 
 https://github.com/BurnySc2/python-sc2
 
-> Enabling the UI requires the full version of star craft to be installed with
-> wine and Battle.net. To tell the python-sc2 library to use the bots must be
+> Enabling renders requires the full version of SC2 to be installed with
+> through and Battle.net (using WINE on linux). python-sc2 will enable the renderer if it is
 > run with the appropriate environment variables.
 > 
 > ```
