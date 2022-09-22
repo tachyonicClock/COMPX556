@@ -1,26 +1,22 @@
 import random as rnd
 import typing as t
-import gp.genome as gp
+import gp.chromosome as gp
 
 
-def init_bunker(parent: t.Optional[gp.Gene]) -> gp.Bunker:
-    bunker = gp.Bunker(parent)
-    bunker.items = [rnd.choice(gp.INFANTRY)(bunker) for _ in range(4)]
+def random_bunker() -> gp.Bunker:
+    return gp.Bunker([rnd.choice(gp.INFANTRY)() for _ in range(4)])
 
-def initialise_genome(depth: int, parent: t.Optional[gp.Gene] = None) -> gp.Gene:
+
+def initialise_chromosome(depth: int, parent: t.Optional[gp.Gene] = None) -> gp.Gene:
 
     # Base Case
     if depth == 0:
         # add leaf node
-        return rnd.choice(
-            [*gp.INFANTRY, gp.SiegeTank, init_bunker]
-        )(parent)
+        return rnd.choice([*gp.INFANTRY, gp.SiegeTank, random_bunker])()
 
     # Recursive Case
     depth -= 1
-    gene = gp.Quadrant(parent)
-    gene.items = [initialise_genome(depth, gene) for _ in range(4)]
+    gene = gp.Quadrant()
+    gene.set_parent(parent)
+    gene.children = [initialise_chromosome(depth, gene) for _ in range(4)]
     return gene
-
-
-    
