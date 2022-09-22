@@ -8,7 +8,6 @@ def random_bunker() -> gp.Bunker:
 
 
 def initialise_chromosome(depth: int, parent: t.Optional[gp.Gene] = None) -> gp.Gene:
-
     # Base Case
     if depth == 0:
         # add leaf node

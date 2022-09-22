@@ -1,5 +1,6 @@
 import gp
 import pytest
+from gp.breedable import SubtreeMutator
 
 from gp.chromosome import BadChromosome
 
@@ -17,7 +18,6 @@ def test_quadrant():
 
 def test_initialise_chromosome():
     chromosome = gp.initialise_chromosome(2)
-    print(chromosome.to_json())
 
 
 def test_replace_node():
@@ -78,6 +78,14 @@ def test_copy():
 def test_subtree_crossover():
     parent_a = gp.initialise_chromosome(3)
     parent_b = gp.initialise_chromosome(3)
+    crossover = gp.SubtreeCrossover(5)
 
-    for _ in range(100):
-        gp.subtree_crossover(parent_a, parent_b)
+    for _ in range(10):
+        parent_a = crossover.crossover(parent_a, parent_b)
+
+def test_subtree_mutation():
+    parent_a = gp.initialise_chromosome(1)
+    mutator = SubtreeMutator(1, 5)
+    for _ in range(10):
+        parent_a = mutator.mutate(parent_a)
+        print(parent_a)
