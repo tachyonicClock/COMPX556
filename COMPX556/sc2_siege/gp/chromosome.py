@@ -1,6 +1,6 @@
 import typing as t
 from copy import deepcopy
-
+from gp.rectangle import Rectangle
 
 class BadChromosome(Exception):
     pass
@@ -46,6 +46,10 @@ class Gene():
     def iterate(self) -> 'Gene':
         """Iterate over all genes in this gene"""
         yield self
+
+    def locations(self, parent_quad: Rectangle) -> t.Tuple['Gene', t.Tuple[float, float]]:
+        """Return a list of genes and their locations"""
+        yield (self, parent_quad.center())
 
     def replace_node(self, replacement: 'Gene'):
         """Replace the target node with the source node"""
@@ -117,6 +121,11 @@ class Composite(Gene):
         yield self
         for item in self._children:
             for sub_item in item.iterate():
+                yield sub_item
+
+    def locations(self, parent_quad: Rectangle) -> t.Tuple[Gene, t.Tuple[float, float]]:
+        for item, rect in zip(self._children, parent_quad.quarters()):
+            for sub_item in item.locations(rect):
                 yield sub_item
 
     def _update_parent_references(self):
@@ -200,6 +209,9 @@ class Bunker(Composite):
     def to_json(self):
         str = ','.join(map(lambda x: x.to_json(), self._children))
         return f'{{"Bunker":[[{str}]]}}'
+
+    def locations(self, parent_quad: Rectangle) -> t.Tuple[Gene, t.Tuple[float, float]]:
+        yield from []
 
     def __str__(self) -> str:
         return "B(" + ''.join(map(lambda x: x.__str__(), self._children)) + ")"

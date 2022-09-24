@@ -7,8 +7,14 @@ https://github.com/BurnySc2/python-sc2
 > run with the appropriate environment variables.
 > 
 > ```
-> SC2PF=WineLinux WINE=/usr/bin/wine SC2PATH=/home/anton/.wine/drive_c/Program\ Files\ \(x86\)/StarCraft\ II/  python3 examples/protoss/cannon_rush.py 
+> SC2PF=WineLinux WINE=/usr/bin/wine SC2PATH=/home/anton/.wine/drive_c/Program\ Files\ \(x86\)/StarCraft\ II/  python3 main.py
 > ```
+
+python-sc2 is fussy about where the map files are placed. For a wine install use the following
+```
+cp maps/Siege.SC2Map ~/.wine/drive_c/Program Files (x86)/StarCraft II/maps/Siege.SC2Map
+```
+You can probably figure out where on windows it should be placed from that.
 
 # Scenario
 
