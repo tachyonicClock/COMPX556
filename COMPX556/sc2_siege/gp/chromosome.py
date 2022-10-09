@@ -2,6 +2,7 @@ import typing as t
 from copy import deepcopy
 from gp.rectangle import Rectangle
 
+
 class BadChromosome(Exception):
     pass
 
@@ -88,9 +89,10 @@ class Composite(Gene):
 
     @children.setter
     def children(self, children: t.List[Gene]):
-        if len(children) != self.child_count:
-            raise ValueError(
-                f"{type(self)} must have {self.child_count} children")
+        # Bunker can have 2-4 children idk how to do this easily so we just yeetin the whole check
+        # if len(children) != self.child_count:
+        #     raise ValueError(
+        #         f"{type(self)} must have {self.child_count} children")
 
         # Ensure that the child can be added to this gene
         for child in children:

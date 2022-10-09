@@ -3,12 +3,15 @@ from sc2.ids.unit_typeid import UnitTypeId
 from sc2.position import Point2
 import typing as t
 import gp
-from gp.rectangle import Rectangle 
+from gp.rectangle import Rectangle
 from sc2_evaluator.const import PRODUCTION_UNIT, UNIT_MAPPING
 from sc2.bot_ai import BotAI
+from sc2.ids.ability_id import AbilityId
+
 
 class CommandFailed(Exception):
     pass
+
 
 class Command():
     def __init__(self) -> None:
@@ -23,7 +26,8 @@ class Command():
             return f'{self.__class__.__name__}->{self.after}'
         else:
             return f'{self.__class__.__name__}'
-    
+
+
 class TrainUnit(Command):
     def __init__(self, unit: UnitTypeId, building: UnitTypeId,) -> None:
         self.unit = unit
@@ -33,8 +37,10 @@ class TrainUnit(Command):
     def train(self, bot: BotAI):
         building = bot.structures(self.building).idle.random
         if building is None:
-            raise CommandFailed(f'No idle {self.building} to train {self.unit}')
+            raise CommandFailed(
+                f'No idle {self.building} to train {self.unit}')
         building.train(self.unit)
+
 
 class PlaceUnit(Command):
     def __init__(self, unit: UnitTypeId, location: Point2) -> None:
@@ -48,12 +54,14 @@ class PlaceUnit(Command):
         if units.empty:
             raise CommandFailed(f'No {self.unit} to place')
         unit = units.random
-        
+
         # Attempt to move the unit
         if unit.move(self.location) != True:
-            raise CommandFailed("Failed to move unit")    
-        return unit.tag 
-
+            raise CommandFailed("Failed to move unit")
+        # need to wait for tank to be in position. Also would be good as then units can move past them??
+        # if (unit.type_id == UnitTypeId.SIEGETANK):
+            # unit(AbilityId.SIEGEMODE_SIEGEMODE)
+        return unit.tag
 
 
 class BuildStructure(Command):
@@ -68,8 +76,7 @@ class BuildStructure(Command):
 
         worker = bot.workers.idle.random
         worker.build(self.unit, self.location)
-        
-            
+
 
 class GarrisonStructure(PlaceUnit):
     def __init__(self, unit: UnitTypeId, location: Point2, structure: UnitTypeId) -> None:
@@ -79,7 +86,8 @@ class GarrisonStructure(PlaceUnit):
     def place(self, bot: BotAI, placed_units: t.Set[int]) -> int:
         # Are units available to garrison and does the structure exist?
         units = bot.units(self.unit).tags_not_in(placed_units)
-        structures = bot.structures.ready.of_type(self.structure).closer_than(1, self.location)
+        structures = bot.structures.ready.of_type(
+            self.structure).closer_than(1, self.location)
         if units.empty:
             raise CommandFailed(f'No {self.unit} to place')
         if structures.empty:
@@ -88,8 +96,8 @@ class GarrisonStructure(PlaceUnit):
         # Attempt to garrison the unit
         unit = units.random
         if unit.smart(structures.first) != True:
-            raise CommandFailed("Failed to move unit")    
-        return unit.tag 
+            raise CommandFailed("Failed to move unit")
+        return unit.tag
 
 
 def build_command_queue(gene: gp.Gene, parent_quad: Rectangle) -> t.List[Command]:
@@ -104,7 +112,7 @@ def build_command_queue(gene: gp.Gene, parent_quad: Rectangle) -> t.List[Command
     elif isinstance(gene, gp.Empty):
         pass
     elif isinstance(gene, gp.Leaf):
-        # Create a train command to build the unit and then a place command 
+        # Create a train command to build the unit and then a place command
         # to place the unit on the battlefield
         unit = UNIT_MAPPING[type(gene)]
         prod = PRODUCTION_UNIT[unit]
@@ -120,6 +128,7 @@ def build_command_queue(gene: gp.Gene, parent_quad: Rectangle) -> t.List[Command
 
             unit = UNIT_MAPPING[type(child)]
             prod = PRODUCTION_UNIT[unit]
-            cmd = cmd.then(TrainUnit(unit, prod).then(GarrisonStructure(unit, position, UnitTypeId.BUNKER)))
+            cmd = cmd.then(TrainUnit(unit, prod).then(
+                GarrisonStructure(unit, position, UnitTypeId.BUNKER)))
         queue.append(cmd)
     return queue
