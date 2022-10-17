@@ -32,16 +32,18 @@ class Individual():
 class Population():
     _population: t.List[Individual]
 
-    def __init__(self, population: t.List[Individual]) -> None:
+    def __init__(self, population: t.List[Individual], to_fitness_score: SquashFitness) -> None:
         self._population = population
+        self.to_fitness_score = to_fitness_score
 
     @staticmethod
     def initialize(
                  population_size: int,
-                 chromosome_depth: int
+                 chromosome_depth: int,
+                 to_fitness_score: SquashFitness
                  ) -> 'Population':
         return Population([Individual(gp.initialise_chromosome(chromosome_depth))
-                            for _ in range(population_size)])
+                            for _ in range(population_size)], to_fitness_score)
 
     def evaluate(self) -> 'Population':
         """Evaluate the fitness of all chromosomes in the population"""
@@ -61,16 +63,16 @@ class Population():
         log.info("Evaluation complete")
         return self
 
-    def select(self, selection_size: int, compare: SquashFitness) -> 'Population':
+    def select(self, selection_size: int) -> 'Population':
         """Select a subset of the population based on fitness"""
         sorted_population = sorted(
             self._population, 
-            key=lambda x: compare(x.fitness), reverse=True)
-        return Population(sorted_population[:selection_size])
+            key=lambda x: self.to_fitness_score(x.fitness), reverse=True)
+        return Population(sorted_population[:selection_size], self.to_fitness_score)
 
     def sample(self, sample_size: int) -> 'Population':
         """Sample a subset of the population with replacement"""
-        return Population(random.choices(self._population, k=sample_size))
+        return Population(random.choices(self._population, k=sample_size), self.to_fitness_score)
 
     def stochastic_mutate(self, func: t.Callable[[gp.Gene], gp.Gene], probability: float) -> 'Population':
         """Apply a function to a random subset of the population"""
@@ -83,7 +85,7 @@ class Population():
                     # Skip failed cross over attempts
                     pass
             new_population.append(individual)
-        return Population(new_population)
+        return Population(new_population, self.to_fitness_score)
 
     def stochastic_sex(self, func: t.Callable[[gp.Gene, gp.Gene], gp.Gene], probability: float) -> 'Population':
         """Apply a function to a random subset of the population"""
@@ -99,13 +101,44 @@ class Population():
                     pass
         
             new_population.append(individual)
-        return Population(new_population)
+        return Population(new_population, self.to_fitness_score)
 
     def __iter__(self) -> t.Iterator[Individual]:
         return self._population.__iter__()
 
     def __len__(self) -> int:
         return len(self._population)
+
+    def sum_fitness(self) -> float:
+        return sum([self.to_fitness_score(x.fitness) for x in self._population])
+
+    def average_fitness_score(self) -> float:
+        return  self.sum_fitness() / len(self)
+
+    def best_fitness_score(self) -> float:
+        return max([self.to_fitness_score(x.fitness) for x in self._population])
+
+    def average_minerals(self) -> float:
+        return sum([x.fitness.minerals for x in self._population])/len(self)
+    
+    def average_gas(self) -> float:
+        return sum([x.fitness.gas for x in self._population])/len(self)
+    
+    def average_time(self) -> float:
+        return sum([x.fitness.time for x in self._population])/len(self)
+
+    def best_individual(self) -> Individual:
+        best_fitness: float = None
+        best: Individual = None
+        for individual in self._population:
+            fitness = self.to_fitness_score(individual.fitness)
+            if best_fitness == None or fitness > best_fitness:
+                best_fitness = fitness
+                best = individual
+        return best
+
+
+
 
 
 

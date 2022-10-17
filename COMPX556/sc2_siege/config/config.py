@@ -15,6 +15,9 @@ class Config():
     mutation_probability: float
     generations: int
 
+    generation_log: str
+    tensorboard_log: str
+
 
     def __init__(self):
         self.mineral_weight = -1.
@@ -27,4 +30,7 @@ class Config():
 
         self.sex_probability = 0.5
         self.mutation_probability = 0.1
-        self.generations = 100
+        self.generations = 1_000
+
+        self.generation_log = "logs/generation"
+        self.tensorboard_log = "logs/tensorboard"

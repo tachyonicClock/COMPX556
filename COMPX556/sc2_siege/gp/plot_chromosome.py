@@ -1,9 +1,17 @@
+from PIL import Image
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 import gp
 from gp.rectangle import  Rectangle
+import io
 
-
+def fig2img(fig):
+    """Convert a Matplotlib figure to a PIL Image and return it"""
+    buf = io.BytesIO()
+    fig.savefig(buf)
+    buf.seek(0)
+    img = Image.open(buf)
+    return img
 
 
 def _recursive_plot(ax, gene: gp.Gene, quad: Rectangle):
@@ -29,7 +37,7 @@ def plot_quadrant(quadrant: gp.Quadrant, quad: Rectangle):
     plt.hlines(quad.y + quad.height/2, quad.x, quad.x + quad.width)
 
 
-def plot_gene(gene: gp.Gene, save_file: str):
+def plot_gene(gene: gp.Gene) -> Image:
     """Plot the gene"""
     fig, ax = plt.subplots(figsize=(8, 8))
     plt.grid()
@@ -38,4 +46,6 @@ def plot_gene(gene: gp.Gene, save_file: str):
     ax.set_axisbelow(True)
     ax.set_ylim(16, 0)
     ax.set_xlim(0, 16)
-    plt.savefig(save_file)
+    img = fig2img(fig)
+    plt.close(fig)
+    return img
