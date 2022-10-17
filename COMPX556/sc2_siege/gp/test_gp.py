@@ -1,3 +1,4 @@
+import random
 import gp
 import pytest
 from gp.breedable import SubtreeMutator
@@ -84,7 +85,8 @@ def test_subtree_crossover():
         parent_a = crossover.crossover(parent_a, parent_b)
 
 def test_subtree_mutation():
-    parent_a = gp.initialise_chromosome(1)
+    random.seed(42)
+    parent_a = gp.initialise_chromosome(2)
     mutator = SubtreeMutator(1, 5)
     for _ in range(10):
         parent_a = mutator.mutate(parent_a)

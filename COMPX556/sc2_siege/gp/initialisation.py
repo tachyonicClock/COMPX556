@@ -4,12 +4,10 @@ import gp.chromosome as gp
 
 
 def random_bunker() -> gp.Bunker:
-    # return gp.Bunker([rnd.choice(gp.INFANTRY)() for _ in range(4)])
-    return gp.Bunker(fill_bunker())
+    return gp.Bunker([rnd.choice(gp.INFANTRY)() for _ in range(4)])
 
 
 def initialise_chromosome(depth: int, parent: t.Optional[gp.Gene] = None) -> gp.Gene:
-    fill_bunker()
     # Base Case
     if depth == 0:
         # add leaf node
