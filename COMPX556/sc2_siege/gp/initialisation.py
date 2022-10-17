@@ -26,7 +26,7 @@ def initialise_chromosome(depth: int, parent: t.Optional[gp.Gene] = None) -> gp.
 def fill_bunker():
     i = 0
     units = []
-    while i <= 4:
+    while i < 4:
         unit = rnd.choice(gp.INFANTRY)()
         if isinstance(unit, gp.Marine) or isinstance(unit, gp.Empty):
             if i + 1 <= 4:

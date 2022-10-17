@@ -6,7 +6,6 @@ import gp
 from gp.rectangle import Rectangle
 from sc2_evaluator.const import PRODUCTION_UNIT, UNIT_MAPPING
 from sc2.bot_ai import BotAI
-from sc2.ids.ability_id import AbilityId
 
 
 class CommandFailed(Exception):
@@ -58,9 +57,6 @@ class PlaceUnit(Command):
         # Attempt to move the unit
         if unit.move(self.location) != True:
             raise CommandFailed("Failed to move unit")
-        # need to wait for tank to be in position. Also would be good as then units can move past them??
-        # if (unit.type_id == UnitTypeId.SIEGETANK):
-            # unit(AbilityId.SIEGEMODE_SIEGEMODE)
         return unit.tag
 
 
@@ -129,6 +125,7 @@ def build_command_queue(gene: gp.Gene, parent_quad: Rectangle) -> t.List[Command
             unit = UNIT_MAPPING[type(child)]
             prod = PRODUCTION_UNIT[unit]
             cmd = cmd.then(TrainUnit(unit, prod).then(
+
                 GarrisonStructure(unit, position, UnitTypeId.BUNKER)))
         queue.append(cmd)
     return queue
