@@ -11,8 +11,8 @@ https://github.com/BurnySc2/python-sc2
 > ```
 
 python-sc2 is fussy about where the map files are placed. For a wine install use the following
-```
-cp maps/Siege.SC2Map ~/.wine/drive_c/Program Files (x86)/StarCraft II/maps/Siege.SC2Map
+```sh
+cp maps/Siege.SC2Map ~/.wine/drive_c/Program\ Files\ \(x86\)/StarCraft\ II/maps/.
 ```
 You can probably figure out where on windows it should be placed from that.
 
@@ -36,6 +36,23 @@ survives and the resources it takes todo so.
 
 SC2 has two types of resources: Minerals and Gas. Gas is considered more valuable.
 We will have to weight them correctly.
+
+## Headless SC2 Bug
+
+
+Our map ran into an issue when being run by the headless linux client. The map 
+editor is a newer version that creates incompatible levels. Luckily we found 
+a fix. https://github.com/deepmind/pysc2/issues/326
+
+```bash
+smpq -x Siege.SC2Map t3Terrain.xml # Extract the offending file
+# MANUALLY Replace <terrain version="115"> -> <terrain version="114">
+gedit t3Terrain.xml
+# Remove and replace the offending file from the archive
+smpq -r Siege.SC2Map t3Terrain.xml && smpq -a Siege.SC2Map t3Terrain.xml
+# Cleanup
+rm t3Terrain.xml
+```
 
 ### Human Solution
 The scenario is solvable by a human. I found the following solution.

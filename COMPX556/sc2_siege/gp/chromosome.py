@@ -1,7 +1,7 @@
 import typing as t
 from copy import deepcopy
 from gp.rectangle import Rectangle
-
+import re
 
 class BadChromosome(Exception):
     pass
@@ -64,6 +64,14 @@ class Gene():
         """When a gene is copied, the parent references need to be updated"""
         pass
 
+    def depth(self) -> int:
+        """Return the depth of this gene"""
+        return 0
+
+    def size(self) -> int:
+        """Return the size of this gene"""
+        return 1
+        
 
 class Leaf(Gene):
     """A leaf gene is a gene that has no children"""
@@ -134,6 +142,15 @@ class Composite(Gene):
         for child in self._children:
             child.set_parent(self)
             child._update_parent_references()
+
+    def depth(self) -> int:
+        """Return the depth of this gene"""
+        return max(child.depth() for child in self._children) + 1
+
+    def size(self) -> int:
+        """Return the size of this gene"""
+        return sum(child.size() for child in self._children) + 1
+        
 
 
 class Infantry(Leaf):

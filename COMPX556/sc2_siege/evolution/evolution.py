@@ -5,20 +5,7 @@ import typing as t
 import ray
 import gp
 from gp.fitness import Fitness, SquashFitness
-
-
-@ray.remote
-def evaluate_chromosome(chromosome: gp.Gene) -> gp.Fitness:
-    mock_fitness = 0
-    cost = 0
-    for g in chromosome.iterate():
-        if isinstance(g, gp.Marine):
-            mock_fitness += 1
-        else:
-            cost += 1
-
-    # TODO: Call the logic in `sc2_evaluator.py` to evaluate the chromosome
-    return gp.Fitness(mock_fitness, cost, 0)
+from sc2_evaluator.evaluate import evaluate as sc2_evaluate
 
 @dataclass
 class Individual():
@@ -32,9 +19,12 @@ class Individual():
 class Population():
     _population: t.List[Individual]
 
-    def __init__(self, population: t.List[Individual], to_fitness_score: SquashFitness) -> None:
+    def __init__(self, 
+            population: t.List[Individual], 
+            to_fitness_score: SquashFitness):
         self._population = population
         self.to_fitness_score = to_fitness_score
+
 
     @staticmethod
     def initialize(
@@ -44,24 +34,6 @@ class Population():
                  ) -> 'Population':
         return Population([Individual(gp.initialise_chromosome(chromosome_depth))
                             for _ in range(population_size)], to_fitness_score)
-
-    def evaluate(self) -> 'Population':
-        """Evaluate the fitness of all chromosomes in the population"""
-        fitness_ref = []
-
-        log.info("Launching evaluation of population")
-        for individual in self._population:
-            if individual.fitness is None:
-                fitness_ref.append(evaluate_chromosome.remote(individual.chromosome))
-            else:
-                fitness_ref.append(ray.put(individual.fitness))
-
-        log.info("Waiting for evaluation to complete")
-        for i, ref in enumerate(fitness_ref):
-            self._population[i].fitness = ray.get(ref)
-
-        log.info("Evaluation complete")
-        return self
 
     def select(self, selection_size: int) -> 'Population':
         """Select a subset of the population based on fitness"""
@@ -138,8 +110,37 @@ class Population():
         return best
 
 
+class PopulationEvaluator():
 
+    def __init__(self,
+        win_timeout: float,
+        ready_time_limit: float
+    ) -> None:
+        self.win_timeout = win_timeout
+        self.ready_time_limit = ready_time_limit
 
+    @ray.remote
+    def evaluate_chromosome(self, chromosome: gp.Gene) -> gp.Fitness:
+        return sc2_evaluate(chromosome, realtime=False, win_timeout=self.win_timeout, ready_time_limit=self.ready_time_limit)
+
+    def evaluate(self, population: Population) -> Population:
+        """Evaluate the fitness of all chromosomes in the population"""
+        fitness_ref = []
+
+        log.info("Launching evaluation of population")
+        for individual in population._population:
+            if individual.fitness is None:
+                fitness_ref.append(
+                    self.evaluate_chromosome.remote(self, individual.chromosome))
+            else:
+                fitness_ref.append(ray.put(individual.fitness))
+
+        log.info("Waiting for evaluation to complete")
+        for i, ref in enumerate(fitness_ref):
+            population._population[i].fitness = ray.get(ref)
+
+        log.info("Evaluation complete")
+        return population
 
 
     # def save(self, f: pickle._WritableFileobj):

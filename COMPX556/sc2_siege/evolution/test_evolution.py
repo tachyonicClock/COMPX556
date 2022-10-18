@@ -27,7 +27,7 @@ def test_select(population: Population):
     for p in population._population:
         p.fitness = gp.Fitness(random.random(), random.random(), random.random())
 
-    selected = population.select(5, cmp)
+    selected = population.remove_unfit(5, cmp)
     assert len(selected._population) == 5
 
     # Assert they are in order
