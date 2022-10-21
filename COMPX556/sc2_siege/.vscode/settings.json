@@ -1,4 +1,8 @@
 {
     "python.linting.pylamaEnabled": true,
-    "python.linting.enabled": false
+    "python.linting.enabled": false,
+    "cSpell.words": [
+        "Baneling",
+        "Banelings"
+    ]
 }

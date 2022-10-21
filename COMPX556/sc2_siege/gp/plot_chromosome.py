@@ -37,7 +37,7 @@ def plot_quadrant(quadrant: gp.Quadrant, quad: Rectangle):
     plt.hlines(quad.y + quad.height/2, quad.x, quad.x + quad.width)
 
 
-def plot_gene(gene: gp.Gene) -> Image:
+def plot_individual(gene: gp.Gene) -> Image:
     """Plot the gene"""
     fig, ax = plt.subplots(figsize=(8, 8))
     plt.grid()

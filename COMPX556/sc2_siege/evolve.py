@@ -39,10 +39,7 @@ def main(purge: bool, num_cpus: int, resume: bool):
         SaveGeneration(f"{cfg.generation_log}")
     ]
 
-    to_fitness_score = SquashFitness(
-        cfg.time_weight,
-        cfg.mineral_weight, 
-        cfg.gas_weight)
+    to_fitness_score = cfg.fitness_scorer()
 
     population = Population.initialize(
         cfg.population_size,

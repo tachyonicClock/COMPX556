@@ -15,11 +15,12 @@ class Gene():
 
     _parent: t.Optional['Composite'] = None
 
-    def set_parent(self, parent: 'Gene'):
+    def set_parent(self, parent: 'Gene') -> 'Gene':
         """Set the parent of this gene. This is used to modify the tree
         structure easily.
         """
         self._parent = parent
+        return self
 
     @property
     def parent(self) -> t.Optional['Composite']:
@@ -185,7 +186,7 @@ class Empty(Infantry):
         return '"Empty"'
 
     def __str__(self) -> str:
-        return ""
+        return "E"
 
 
 class SiegeTank(Leaf):
@@ -234,6 +235,61 @@ class Bunker(Composite):
 
     def __str__(self) -> str:
         return "B(" + ''.join(map(lambda x: x.__str__(), self._children)) + ")"
+
+    
+class ParseFail(Exception):
+    pass
+
+def from_str(stringified_chromosome: str) -> Gene:
+    """A needlessly dense parser for a chromosome string"""
+
+    def _consume_token(x: str, token: str) -> t.Optional[str]:
+        if x.startswith(token):
+            return x[len(token):]
+        return None
+
+    def _parse(x: str, parent: Gene) -> t.Optional[t.Tuple[str, Gene]]:
+        # Consume terminals
+        if (r := _consume_token(x, "Ma")) is not None:
+            return r, Marauder().set_parent(parent)
+        elif (r := _consume_token(x, "M")) is not None:
+            return r, Marine().set_parent(parent)
+        elif (r := _consume_token(x, "E")) is not None:
+            return r, Empty().set_parent(parent)
+        elif (r := _consume_token(x, "St")) is not None:
+            return r, SiegeTank().set_parent(parent)
+        # Consume non-terminals
+        elif (r := _consume_token(x, "B(")) is not None:
+            # Parse children
+            children = []
+            for _ in range(4):
+                result = _parse(r, parent)
+                r, child = result
+                if child is None:
+                    return None
+                
+                children.append(child)
+
+            if (e := _consume_token(r, ")")) is not None:
+                return e, Bunker(children=children).set_parent(parent)
+        elif (r := _consume_token(x, "Q(")) is not None:
+            # Parse children
+            children = []
+            for _ in range(4):
+                r, child = _parse(r, parent)
+                if child is None:
+                    return None
+                children.append(child)
+
+            if (e := _consume_token(r, ")")) is not None:
+                return e, Quadrant(children=children).set_parent(parent)
+
+        return None
+
+    x, gene = _parse(stringified_chromosome, parent=None)
+    assert len(x) == 0, f"Failed to parse {x}"
+    return gene
+
 
 
 INFANTRY = [

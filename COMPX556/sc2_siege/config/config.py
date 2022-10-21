@@ -1,5 +1,7 @@
 import types as t
 
+from gp.fitness import SquashFitness
+
 class Config():
 
     
@@ -42,3 +44,10 @@ class Config():
 
         self.win_timeout = 120
         self.ready_time_limit = 200
+
+    def fitness_scorer(self):
+        return SquashFitness(
+            self.time_weight,
+            self.mineral_weight,
+            self.gas_weight
+        )
