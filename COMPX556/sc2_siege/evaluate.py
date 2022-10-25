@@ -6,7 +6,7 @@ from config.config import Config
 from evolution.evolution import Population
 
 import gp
-from sc2_evaluator.evaluate import evaluate
+from sc2_evaluator.evaluate import evaluate, run_human_playable
 from loguru import logger as log
 
 @click.group()
@@ -35,16 +35,23 @@ def random(realtime: bool, depth: int, no_eval: bool):
 @click.option('--no-eval', default=False, is_flag=True, help='Skip evaluation')
 @click.option('--realtime/--fast', default=True, help='Run in realtime or as fast as possible')
 def load(chromosome: str, no_eval: bool, realtime: bool):
+    cfg = Config()
     gene = gp.from_str(chromosome)
     log.info(f'Evaluating Gene: {gene}')
     if not no_eval:
         fitness = evaluate(
             gene,
             realtime,
-            win_timeout=110,
-            ready_time_limit=200
+            win_timeout=cfg.win_timeout,
+            ready_time_limit=cfg.ready_time_limit
         )
         log.info(f'Fitness: {fitness}')
+
+
+@cli.command()
+def manual():
+    run_human_playable()
+
 
 @cli.command()
 @click.argument("chromosome")

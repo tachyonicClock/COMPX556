@@ -10,7 +10,7 @@ from sc2.data import Race
 from sc2.ids.ability_id import AbilityId
 from sc2.ids.unit_typeid import UnitTypeId
 from sc2.main import run_game
-from sc2.player import Bot
+from sc2.player import Bot, Human
 from sc2.position import Point2
 from sc2.unit import Unit, UnitOrder
 
@@ -179,3 +179,11 @@ def evaluate(
         logger.error(f"Timeout before setup was done {chromosome}")
     return fitness
 
+
+def run_human_playable():
+    game_map = maps.get("Siege")
+    run_game(
+        game_map,
+        [Human(Race.Terran)],
+        realtime=True,
+    )

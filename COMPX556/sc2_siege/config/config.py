@@ -15,6 +15,7 @@ class Config():
 
     sex_probability: float
     mutation_probability: float
+    mutant_tree_depth: int
     generations: int
 
     generation_log: str
@@ -29,21 +30,22 @@ class Config():
     def __init__(self):
         self.mineral_weight = -1
         self.gas_weight = -1.5
-        self.time_weight = 100.
+        self.time_weight = 500.
 
-        self.selection_size = 10
-        self.population_size = 20
+        self.selection_size = 50
+        self.population_size = 100
         self.init_depth = 1
 
-        self.sex_probability = 0.5
+        self.sex_probability = 0.9
         self.mutation_probability = 0.01
         self.generations = 1_000
 
         self.generation_log = "logs/generation"
         self.tensorboard_log = "logs/tensorboard"
 
-        self.win_timeout = 120
+        self.win_timeout = 200
         self.ready_time_limit = 200
+        self.mutant_tree_depth = 2
 
     def fitness_scorer(self):
         return SquashFitness(

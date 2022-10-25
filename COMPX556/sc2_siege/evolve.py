@@ -1,4 +1,5 @@
 import pickle
+from time import time
 import click
 from config.config import Config
 from evolution.loggers import LogCallback, SaveGeneration, Tensorboard
@@ -54,7 +55,7 @@ def main(purge: bool, num_cpus: int, resume: bool):
 
     log.info("Initial population")
 
-    mutator = gp.SubtreeMutator(2)
+    mutator = gp.SubtreeMutator(cfg.mutant_tree_depth)
     sexual_reproduction = gp.SubtreeCrossover()
 
     start_generation = 0
@@ -67,14 +68,17 @@ def main(purge: bool, num_cpus: int, resume: bool):
             population = pickle.load(f)
 
     for i in range(start_generation, cfg.generations):
-        log.info(f"## Generation {i} ##")
+        start = time()
         population = pop_eval.evaluate(population)
 
-        log.info("Logging population")
         for logger in loggers:
             logger.after_pop_eval(i, population)
 
+        log.info(f"## Generation {i} ##")
+        log.info(f"Time taken: {time() - start}")
         pretty_print(population.select(1), to_fitness_score)
+
+
         population = population.select(cfg.selection_size)
         population = population.sample(cfg.population_size)
         population = population.stochastic_mutate(mutator.mutate, cfg.mutation_probability)
