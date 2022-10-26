@@ -121,7 +121,11 @@ class PopulationEvaluator():
 
     @ray.remote
     def evaluate_chromosome(self, chromosome: gp.Gene) -> gp.Fitness:
-        return sc2_evaluate(chromosome, realtime=False, win_timeout=self.win_timeout, ready_time_limit=self.ready_time_limit)
+        try:
+            return sc2_evaluate(chromosome, realtime=False, win_timeout=self.win_timeout, ready_time_limit=self.ready_time_limit)
+        except Exception as e:
+            log.error(f"Failed to evaluate chromosome: {e}")
+            return Fitness(0, 0, 0)
 
     def evaluate(self, population: Population) -> Population:
         """Evaluate the fitness of all chromosomes in the population"""

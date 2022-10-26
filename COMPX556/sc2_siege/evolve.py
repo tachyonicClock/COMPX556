@@ -1,3 +1,4 @@
+#!/bin/env python3
 import pickle
 from time import time
 import click

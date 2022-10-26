@@ -30,14 +30,14 @@ class Config():
     def __init__(self):
         self.mineral_weight = -1
         self.gas_weight = -1.5
-        self.time_weight = 500.
+        self.time_weight = 100.
 
         self.selection_size = 50
         self.population_size = 100
         self.init_depth = 1
 
         self.sex_probability = 0.9
-        self.mutation_probability = 0.01
+        self.mutation_probability = 0.1
         self.generations = 1_000
 
         self.generation_log = "logs/generation"
