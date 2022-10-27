@@ -43,7 +43,7 @@ def test_stochastic_mutate(simple_population: Population):
     marauder = 0
     new_pop = simple_population.stochastic_mutate(mutator, 0.5)
     for individual in new_pop._population:
-        if isinstance(individual.chromosome, gp.Marauder):
+        if isinstance(individual.genotype, gp.Marauder):
             marauder += 1
     assert marauder == 3, "Expected 3 marauders but got {}".format(marauder)
 
@@ -54,7 +54,7 @@ def test_stochastic_sex(simple_population: Population):
     new_pop = simple_population.stochastic_sex(sex, 0.5)
     i = 0
     for individual in new_pop._population:
-        if str(individual.chromosome) == "Q(MM)":
+        if str(individual.genotype) == "Q(MM)":
             i += 1
     assert i == 2, "Expected 2 individuals with Q(MM) but got {}".format(i)
 

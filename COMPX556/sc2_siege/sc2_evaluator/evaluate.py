@@ -17,7 +17,7 @@ from sc2.unit import Unit, UnitOrder
 import sc2_evaluator.command as cmd
 
 
-class EvaluateChromosome(BotAI):
+class Evaluategenotype(BotAI):
 
 
     def __init__(self, commands: t.List[cmd.Command], win_timeout: float, ready_time_limit: float) -> None:
@@ -150,21 +150,21 @@ class EvaluateChromosome(BotAI):
 
 
 def evaluate(
-        chromosome: gp.Gene, 
+        genotype: gp.Gene, 
         realtime: bool,
         win_timeout: float,
         ready_time_limit: float
     ) -> gp.Fitness:
 
-    commands = cmd.build_command_queue(chromosome, Rectangle(40, 40, 16, 16))
-    bot = EvaluateChromosome(commands, 
+    commands = cmd.build_command_queue(genotype, Rectangle(40, 40, 16, 16))
+    bot = Evaluategenotype(commands, 
         win_timeout,
         ready_time_limit
     )
     game_map = maps.get("Siege")
 
     logger.info(f"Map Full Path  : {game_map.path}")
-    logger.info(f"chr: {chromosome}")
+    logger.info(f"chr: {genotype}")
     # plot_gene(gene, "gene.png")
     # res just holds a Result enum value of either Victory or Defeat
     run_game(
@@ -176,7 +176,7 @@ def evaluate(
     fitness: Fitness = Fitness(bot.time_survived, bot.minerals_used, bot.gas_used)
 
     if not bot.setup_done:
-        logger.error(f"Timeout before setup was done {chromosome}")
+        logger.error(f"Timeout before setup was done {genotype}")
     return fitness
 
 

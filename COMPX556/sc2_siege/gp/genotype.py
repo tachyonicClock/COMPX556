@@ -3,13 +3,13 @@ from copy import deepcopy
 from gp.rectangle import Rectangle
 import re
 
-class BadChromosome(Exception):
+class BadGenotype(Exception):
     pass
 
 
 class Gene():
-    """The base class for all genes in a chromosome.
-    A chromosome is a tree of genes. Each gene has a parent and a list of
+    """The base class for all genes in a genotype.
+    A genotype is a tree of genes. Each gene has a parent and a list of
     children. The root gene has no parent and the leaf genes have no children.
     """
 
@@ -72,7 +72,7 @@ class Gene():
     def size(self) -> int:
         """Return the size of this gene"""
         return 1
-        
+
 
 class Leaf(Gene):
     """A leaf gene is a gene that has no children"""
@@ -226,7 +226,7 @@ class Bunker(Composite):
 
     def _check_child(self, child: Gene):
         if not isinstance(child, Infantry):
-            raise BadChromosome(
+            raise BadGenotype(
                 f"{type(self)} must have only Infantry children")
         super()._check_child(child)
 
@@ -244,8 +244,8 @@ class Bunker(Composite):
 class ParseFail(Exception):
     pass
 
-def from_str(stringified_chromosome: str) -> Gene:
-    """A needlessly dense parser for a chromosome string"""
+def from_str(stringified_genotype: str) -> Gene:
+    """Parses a stringified genotype into a genotype tree"""
 
     def _consume_token(x: str, token: str) -> t.Optional[str]:
         if x.startswith(token):
@@ -290,7 +290,7 @@ def from_str(stringified_chromosome: str) -> Gene:
 
         return None
 
-    x, gene = _parse(stringified_chromosome, parent=None)
+    x, gene = _parse(stringified_genotype, parent=None)
     assert len(x) == 0, f"Failed to parse {x}"
     return gene
 

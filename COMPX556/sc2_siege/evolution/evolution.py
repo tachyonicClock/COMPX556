@@ -9,14 +9,16 @@ from sc2_evaluator.evaluate import evaluate as sc2_evaluate
 
 @dataclass
 class Individual():
-    chromosome: gp.Gene
+    genotype: gp.Gene
     fitness: t.Optional[gp.Fitness] = None
 
     def __str__(self):
-        return f'Individual(chromosome={self.chromosome}, fitness={self.fitness})'
+        return f'Individual(genotype={self.genotype}, fitness={self.fitness})'
 
 
 class Population():
+    """The population is a set of individual genotypes"""
+
     _population: t.List[Individual]
 
     def __init__(self, 
@@ -29,10 +31,10 @@ class Population():
     @staticmethod
     def initialize(
                  population_size: int,
-                 chromosome_depth: int,
+                 genotype_depth: int,
                  to_fitness_score: SquashFitness
                  ) -> 'Population':
-        return Population([Individual(gp.initialise_chromosome(chromosome_depth))
+        return Population([Individual(gp.initialise_genotype(genotype_depth))
                             for _ in range(population_size)], to_fitness_score)
 
     def select(self, selection_size: int) -> 'Population':
@@ -52,8 +54,8 @@ class Population():
         for individual in self._population:
             if random.random() < probability:
                 try:
-                    individual = Individual(func(individual.chromosome))
-                except gp.BadChromosome:
+                    individual = Individual(func(individual.genotype))
+                except gp.BadGenotype:
                     # Skip failed cross over attempts
                     pass
             new_population.append(individual)
@@ -64,11 +66,11 @@ class Population():
         new_population = []
         for individual in self._population:
             if random.random() < probability:
-                parent_a = individual.chromosome
-                parent_b = random.choice(self._population).chromosome
+                parent_a = individual.genotype
+                parent_b = random.choice(self._population).genotype
                 try:
                     individual = Individual(func(parent_a, parent_b))
-                except gp.BadChromosome:
+                except gp.BadGenotype:
                     # Skip failed cross over attempts
                     pass
         
@@ -120,22 +122,22 @@ class PopulationEvaluator():
         self.ready_time_limit = ready_time_limit
 
     @ray.remote
-    def evaluate_chromosome(self, chromosome: gp.Gene) -> gp.Fitness:
+    def evaluate_genotype(self, genotype: gp.Gene) -> gp.Fitness:
         try:
-            return sc2_evaluate(chromosome, realtime=False, win_timeout=self.win_timeout, ready_time_limit=self.ready_time_limit)
+            return sc2_evaluate(genotype, realtime=False, win_timeout=self.win_timeout, ready_time_limit=self.ready_time_limit)
         except Exception as e:
-            log.error(f"Failed to evaluate chromosome: {e}")
+            log.error(f"Failed to evaluate genotype: {e}")
             return Fitness(0, 0, 0)
 
     def evaluate(self, population: Population) -> Population:
-        """Evaluate the fitness of all chromosomes in the population"""
+        """Evaluate the fitness of all genotypes in the population"""
         fitness_ref = []
 
         log.info("Launching evaluation of population")
         for individual in population._population:
             if individual.fitness is None:
                 fitness_ref.append(
-                    self.evaluate_chromosome.remote(self, individual.chromosome))
+                    self.evaluate_genotype.remote(self, individual.genotype))
             else:
                 fitness_ref.append(ray.put(individual.fitness))
 

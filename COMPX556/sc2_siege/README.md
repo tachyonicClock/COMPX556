@@ -1,3 +1,8 @@
+## Terminology
+
+ - Genotype: The tree of genes that composes an individual
+ - Gene: A node in a genotype
+
 ## Setting Up SC2
 
 https://github.com/BurnySc2/python-sc2

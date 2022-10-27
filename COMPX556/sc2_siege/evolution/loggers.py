@@ -31,8 +31,8 @@ class Tensorboard(LogCallback):
         self.writer.add_scalar('minerals/average', population.average_minerals(), generation)
         self.writer.add_scalar('minerals/best', best.fitness.minerals, generation)
 
-        self.writer.add_scalar('structure/depth', best.chromosome.depth(), generation)
-        self.writer.add_scalar('structure/size', best.chromosome.size(), generation)
+        self.writer.add_scalar('structure/depth', best.genotype.depth(), generation)
+        self.writer.add_scalar('structure/size', best.genotype.size(), generation)
 
 
 

@@ -3,11 +3,11 @@ from dataclasses import dataclass
 @dataclass
 class Fitness():
     time: float
-    """The time the chromosome survived. Measured in game seconds"""
+    """The time the genotype survived. Measured in game seconds"""
     minerals: int
-    """The amount of minerals the chromosome consumed"""
+    """The amount of minerals the genotype consumed"""
     gas: int
-    """The amount of gas the chromosome consumed"""
+    """The amount of gas the genotype consumed"""
 
     def __str__(self):
         return f'Fitness(time={self.time}, minerals={self.minerals}, gas={self.gas})'

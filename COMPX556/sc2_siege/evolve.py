@@ -17,7 +17,7 @@ def pretty_print(pop: Population, to_fitness_score: SquashFitness):
     for i, individual in enumerate(pop._population):
         log.info(f"Fitness score:      {to_fitness_score(individual.fitness)}")
         log.info(f"Fitness components: {individual.fitness}")
-        log.info(f"Chromosome:         {individual.chromosome}")
+        log.info(f"genotype:         {individual.genotype}")
     log.info("---------------------------------------------------------------")
 
 

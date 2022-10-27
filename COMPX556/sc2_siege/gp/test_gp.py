@@ -3,7 +3,7 @@ import gp
 import pytest
 from gp.breedable import SubtreeMutator
 
-from gp.chromosome import BadChromosome
+from gp.genotype import BadGenotype
 
 
 def test_quadrant():
@@ -17,8 +17,8 @@ def test_quadrant():
         gene.children = [gp.SiegeTank(), gp.Marauder(), gp.Marine()]
 
 
-def test_initialise_chromosome():
-    chromosome = gp.initialise_chromosome(2)
+def test_initialise_genotype():
+    genotype = gp.initialise_genotype(2)
 
 
 def test_replace_node():
@@ -53,7 +53,7 @@ def test_invalid_replace():
     )
 
     siege_tank = gp.SiegeTank()
-    with pytest.raises(BadChromosome):
+    with pytest.raises(BadGenotype):
         marine.replace_node(siege_tank)
 
 
@@ -77,8 +77,8 @@ def test_copy():
 
 
 def test_subtree_crossover():
-    parent_a = gp.initialise_chromosome(3)
-    parent_b = gp.initialise_chromosome(3)
+    parent_a = gp.initialise_genotype(3)
+    parent_b = gp.initialise_genotype(3)
     crossover = gp.SubtreeCrossover(5)
 
     for _ in range(10):
@@ -86,7 +86,7 @@ def test_subtree_crossover():
 
 def test_subtree_mutation():
     random.seed(42)
-    parent_a = gp.initialise_chromosome(2)
+    parent_a = gp.initialise_genotype(2)
     mutator = SubtreeMutator(1, 5)
     for _ in range(10):
         parent_a = mutator.mutate(parent_a)

@@ -15,14 +15,14 @@ def cli():
 
 @cli.command()
 @click.option('--realtime/--fast', default=True, help='Run in realtime or as fast as possible')
-@click.option('--depth', default=2, help='Depth of the chromosome')
+@click.option('--depth', default=2, help='Depth of the genotype')
 @click.option('--no-eval', default=False, is_flag=True, help='Skip evaluation')
 def random(realtime: bool, depth: int, no_eval: bool):
-    chromosome = gp.initialise_chromosome(depth)
-    log.info(f'Evaluating Gene: {chromosome}')
+    genotype = gp.initialise_genotype(depth)
+    log.info(f'Evaluating Gene: {genotype}')
     if not no_eval:
         fitness = evaluate(
-            chromosome,
+            genotype,
             realtime,
             win_timeout=110,
             ready_time_limit=200
@@ -31,12 +31,12 @@ def random(realtime: bool, depth: int, no_eval: bool):
 
 
 @cli.command()
-@click.argument("chromosome")
+@click.argument("genotype")
 @click.option('--no-eval', default=False, is_flag=True, help='Skip evaluation')
 @click.option('--realtime/--fast', default=True, help='Run in realtime or as fast as possible')
-def load(chromosome: str, no_eval: bool, realtime: bool):
+def load(genotype: str, no_eval: bool, realtime: bool):
     cfg = Config()
-    gene = gp.from_str(chromosome)
+    gene = gp.from_str(genotype)
     log.info(f'Evaluating Gene: {gene}')
     if not no_eval:
         fitness = evaluate(
@@ -54,10 +54,10 @@ def manual():
 
 
 @cli.command()
-@click.argument("chromosome")
+@click.argument("genotype")
 @click.argument("filename")
-def plot(chromosome: str, filename: str):
-    gene = gp.from_str(chromosome)
+def plot(genotype: str, filename: str):
+    gene = gp.from_str(genotype)
     img = gp.plot_individual(gene)
     img.save(filename)
 
@@ -72,7 +72,7 @@ def population(population_pickle: str):
     to_fitness_score = cfg.fitness_scorer()
     for individual in population.select(len(population)):
         
-        log.info(f'{to_fitness_score(individual.fitness):.2f}: {individual.chromosome}')
+        log.info(f'{to_fitness_score(individual.fitness):.2f}: {individual.genotype}')
 
 if __name__ == '__main__':
     cli()

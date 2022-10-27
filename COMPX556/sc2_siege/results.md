@@ -1,5 +1,5 @@
 ```
-Chromosome: Q(StStQ(Q(StStME)StQ(Q(StMStSt)Q(EStStM)Q(Q(MMME)EEM)Q(EEEMa))Q(MMME))St)
+genotype: Q(StStQ(Q(StStME)StQ(Q(StMStSt)Q(EStStM)Q(Q(MMME)EEM)Q(EEEMa))Q(MMME))St)
 Fitness: Fitness(time=110.13392857142858, minerals=2250, gas=1400)
 Generation: 80
 ```

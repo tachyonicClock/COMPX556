@@ -2,10 +2,10 @@ import gp
 import random as rnd
 
 
-def find_crossover_point(chromosome: gp.Gene) -> gp.Gene:
-    """Return a random gene from the chromosome"""
+def find_crossover_point(genotype: gp.Gene) -> gp.Gene:
+    """Return a random gene from the genotype"""
     # The first element is the root node, so we don't want to select that
-    return rnd.choice(list(chromosome.iterate())[1:])
+    return rnd.choice(list(genotype.iterate())[1:])
 
 
 class SubtreeCrossover():
@@ -14,26 +14,26 @@ class SubtreeCrossover():
     def __init__(self, retries=5):
         self.retries = retries
 
-    def crossover(self, chromosome_1: gp.Gene, chromosome_2: gp.Gene) -> gp.Gene:
-        """Perform subtree crossover on the two chromosomes.
-        This is a genetic operator that takes two chromosomes and returns a new
-        chromosome. The new chromosome is created by taking a random subtree from
-        one chromosome and replacing a random subtree in the other chromosome with
-        the subtree from the first chromosome. This is repeated until a valid
-        chromosome is created.
+    def crossover(self, genotype_1: gp.Gene, genotype_2: gp.Gene) -> gp.Gene:
+        """Perform subtree crossover on the two genotypes.
+        This is a genetic operator that takes two genotypes and returns a new
+        genotype. The new genotype is created by taking a random subtree from
+        one genotype and replacing a random subtree in the other genotype with
+        the subtree from the first genotype. This is repeated until a valid
+        genotype is created.
         """
-        child = chromosome_1.copy()
+        child = genotype_1.copy()
         for _ in range(self.retries):
             crossover_point_1 = find_crossover_point(child)
-            crossover_point_2 = find_crossover_point(chromosome_2)
+            crossover_point_2 = find_crossover_point(genotype_2)
 
             try:
                 crossover_point_1.replace_node(crossover_point_2.copy())
                 return child
-            except gp.BadChromosome:
+            except gp.BadGenotype:
                 continue
 
-        raise gp.BadChromosome("Could not create a valid child")
+        raise gp.BadGenotype("Could not create a valid child")
 
 
 
@@ -47,22 +47,22 @@ class SubtreeMutator():
         self.random_subtree_depth = random_subtree_depth
         self.retries = retries
 
-    def mutate(self, chromosome: gp.Gene) -> gp.Gene:
-        """Perform subtree mutation on the chromosome.
-        This is a genetic operator that takes a chromosome and returns a new
-        chromosome. 
+    def mutate(self, genotype: gp.Gene) -> gp.Gene:
+        """Perform subtree mutation on the genotype.
+        This is a genetic operator that takes a genotype and returns a new
+        genotype. 
         """
-        random_subtree = gp.initialise_chromosome(self.random_subtree_depth)
-        child = chromosome.copy()
+        random_subtree = gp.initialise_genotype(self.random_subtree_depth)
+        child = genotype.copy()
         for _ in range(self.retries):
             crossover_point = find_crossover_point(child)
 
             try:
                 crossover_point.replace_node(random_subtree)
                 return child
-            except gp.BadChromosome:
+            except gp.BadGenotype:
                 continue
 
-        raise gp.BadChromosome("Could not create a valid child")
+        raise gp.BadGenotype("Could not create a valid child")
 
 
