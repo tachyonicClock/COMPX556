@@ -84,6 +84,7 @@ def test_subtree_crossover():
     for _ in range(10):
         parent_a = crossover.crossover(parent_a, parent_b)
 
+
 def test_subtree_mutation():
     random.seed(42)
     parent_a = gp.initialise_genotype(2)

@@ -1,5 +1,3 @@
-
-
 import pickle
 import click
 from config.config import Config
@@ -9,9 +7,11 @@ import gp
 from sc2_evaluator.evaluate import evaluate, run_human_playable
 from loguru import logger as log
 
+
 @click.group()
 def cli():
     pass
+
 
 @cli.command()
 @click.option('--realtime/--fast', default=True, help='Run in realtime or as fast as possible')
@@ -61,6 +61,7 @@ def plot(genotype: str, filename: str):
     img = gp.plot_individual(gene)
     img.save(filename)
 
+
 @cli.command()
 @click.argument("population_pickle")
 def population(population_pickle: str):
@@ -71,8 +72,10 @@ def population(population_pickle: str):
 
     to_fitness_score = cfg.fitness_scorer()
     for individual in population.select(len(population)):
-        
-        log.info(f'{to_fitness_score(individual.fitness):.2f}: {individual.genotype}')
+
+        log.info(
+            f'{to_fitness_score(individual.fitness):.2f}: {individual.genotype}')
+
 
 if __name__ == '__main__':
     cli()

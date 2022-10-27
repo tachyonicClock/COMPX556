@@ -19,7 +19,6 @@ import sc2_evaluator.command as cmd
 
 class Evaluategenotype(BotAI):
 
-
     def __init__(self, commands: t.List[cmd.Command], win_timeout: float, ready_time_limit: float) -> None:
         super().__init__()
         self.commands = commands
@@ -68,10 +67,11 @@ class Evaluategenotype(BotAI):
             # If the order is to over garrison a bunker that is full, cancel it
             if order.ability.id == AbilityId.MOVE and isinstance(order.target, int):
                 bunker = self.structures.by_tag(order.target)
-                
+
                 if (bunker.cargo_left < 1 and unit.type_id == UnitTypeId.MARINE) or \
                    (bunker.cargo_left < 2 and unit.type_id == UnitTypeId.MARAUDER):
-                    logger.trace(f'Canceling impossible order {order} on {unit}')
+                    logger.trace(
+                        f'Canceling impossible order {order} on {unit}')
                     unit.stop()
 
         for unit in self.all_own_units:
@@ -93,7 +93,7 @@ class Evaluategenotype(BotAI):
         if len(self.commands) != 0:
             self.consume_command()
         else:
-            # Once all commands are consumed, we can start the game if 
+            # Once all commands are consumed, we can start the game if
             # everything is in position
             if self.num_outstanding_orders() == 0:
                 await self.on_game_ready()
@@ -105,11 +105,10 @@ class Evaluategenotype(BotAI):
             logger.warning("Ready time limit exceeded, starting game anyway")
             await self.on_game_ready()
 
-
     async def on_game_ready(self):
         # Tell all siege tanks to transform into siege mode
         for unit in self.all_own_units.of_type(UnitTypeId.SIEGETANK):
-                unit(AbilityId.SIEGEMODE_SIEGEMODE)
+            unit(AbilityId.SIEGEMODE_SIEGEMODE)
         self.setup_done = True
         self.starting_game_time = self.time
         logger.info("Evaluating Now ...")
@@ -120,12 +119,11 @@ class Evaluategenotype(BotAI):
         if not self.townhalls.exists:
             await self.chat_send("Survived " + str(self.time) + " seconds")
             await self.client.leave()
-        
+
         # win cond. Last wave spawns at roughly 108 seconds (1.8 minutes)
         # in testing: final wave actually spawns around 56-58
         if self.time_survived > self.win_timeout:
             await self.client.leave()
-
 
     async def on_step(self, iteration):
         if not self.setup_done:
@@ -136,11 +134,10 @@ class Evaluategenotype(BotAI):
     @property
     def gas_used(self):
         return self.starting_gas - self.vespene
-    
+
     @property
     def minerals_used(self):
         return self.starting_minerals - self.minerals
-
 
     async def on_building_construction_complete(self, unit: Unit):
         p = Point2([unit.position.x - 0.5, unit.position.y - 0.5])
@@ -150,17 +147,17 @@ class Evaluategenotype(BotAI):
 
 
 def evaluate(
-        genotype: gp.Gene, 
-        realtime: bool,
-        win_timeout: float,
-        ready_time_limit: float
-    ) -> gp.Fitness:
+    genotype: gp.Gene,
+    realtime: bool,
+    win_timeout: float,
+    ready_time_limit: float
+) -> gp.Fitness:
 
     commands = cmd.build_command_queue(genotype, Rectangle(40, 40, 16, 16))
-    bot = Evaluategenotype(commands, 
-        win_timeout,
-        ready_time_limit
-    )
+    bot = Evaluategenotype(commands,
+                           win_timeout,
+                           ready_time_limit
+                           )
     game_map = maps.get("Siege")
 
     logger.info(f"Map Full Path  : {game_map.path}")
@@ -173,7 +170,8 @@ def evaluate(
         realtime=realtime,
     )
 
-    fitness: Fitness = Fitness(bot.time_survived, bot.minerals_used, bot.gas_used)
+    fitness: Fitness = Fitness(
+        bot.time_survived, bot.minerals_used, bot.gas_used)
 
     if not bot.setup_done:
         logger.error(f"Timeout before setup was done {genotype}")

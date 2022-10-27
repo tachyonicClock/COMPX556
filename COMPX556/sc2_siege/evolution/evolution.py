@@ -7,6 +7,7 @@ import gp
 from gp.fitness import Fitness, SquashFitness
 from sc2_evaluator.evaluate import evaluate as sc2_evaluate
 
+
 @dataclass
 class Individual():
     genotype: gp.Gene
@@ -21,26 +22,26 @@ class Population():
 
     _population: t.List[Individual]
 
-    def __init__(self, 
-            population: t.List[Individual], 
-            to_fitness_score: SquashFitness):
+    def __init__(self,
+                 population: t.List[Individual],
+                 to_fitness_score: SquashFitness):
         self._population = population
         self.to_fitness_score = to_fitness_score
 
-
     @staticmethod
     def initialize(
-                 population_size: int,
-                 genotype_depth: int,
-                 to_fitness_score: SquashFitness
-                 ) -> 'Population':
+        population_size: int,
+        genotype_depth: int,
+        to_fitness_score: SquashFitness
+    ) -> 'Population':
+        """Initialize a population of random genotypes"""
         return Population([Individual(gp.initialise_genotype(genotype_depth))
-                            for _ in range(population_size)], to_fitness_score)
+                           for _ in range(population_size)], to_fitness_score)
 
     def select(self, selection_size: int) -> 'Population':
         """Select a subset of the population based on fitness"""
         sorted_population = sorted(
-            self._population, 
+            self._population,
             key=lambda x: self.to_fitness_score(x.fitness), reverse=True)
         return Population(sorted_population[:selection_size], self.to_fitness_score)
 
@@ -73,7 +74,7 @@ class Population():
                 except gp.BadGenotype:
                     # Skip failed cross over attempts
                     pass
-        
+
             new_population.append(individual)
         return Population(new_population, self.to_fitness_score)
 
@@ -87,17 +88,17 @@ class Population():
         return sum([self.to_fitness_score(x.fitness) for x in self._population])
 
     def average_fitness_score(self) -> float:
-        return  self.sum_fitness() / len(self)
+        return self.sum_fitness() / len(self)
 
     def best_fitness_score(self) -> float:
         return max([self.to_fitness_score(x.fitness) for x in self._population])
 
     def average_minerals(self) -> float:
         return sum([x.fitness.minerals for x in self._population])/len(self)
-    
+
     def average_gas(self) -> float:
         return sum([x.fitness.gas for x in self._population])/len(self)
-    
+
     def average_time(self) -> float:
         return sum([x.fitness.time for x in self._population])/len(self)
 
@@ -115,9 +116,9 @@ class Population():
 class PopulationEvaluator():
 
     def __init__(self,
-        win_timeout: float,
-        ready_time_limit: float
-    ) -> None:
+                 win_timeout: float,
+                 ready_time_limit: float
+                 ) -> None:
         self.win_timeout = win_timeout
         self.ready_time_limit = ready_time_limit
 
@@ -147,9 +148,3 @@ class PopulationEvaluator():
 
         log.info("Evaluation complete")
         return population
-
-
-    # def save(self, f: pickle._WritableFileobj):
-    #     """Write the population to a file"""
-    #     pickle.dump(self._population, f)
-

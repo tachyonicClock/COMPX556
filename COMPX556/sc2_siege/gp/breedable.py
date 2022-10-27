@@ -36,14 +36,13 @@ class SubtreeCrossover():
         raise gp.BadGenotype("Could not create a valid child")
 
 
-
 class SubtreeMutator():
     """A mutation operator that performs subtree mutation"""
 
-    def __init__(self, 
-            random_subtree_depth: int,
-            retries: int = 5
-        ):
+    def __init__(self,
+                 random_subtree_depth: int,
+                 retries: int = 5
+                 ):
         self.random_subtree_depth = random_subtree_depth
         self.retries = retries
 
@@ -64,5 +63,3 @@ class SubtreeMutator():
                 continue
 
         raise gp.BadGenotype("Could not create a valid child")
-
-

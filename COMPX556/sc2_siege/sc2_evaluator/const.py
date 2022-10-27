@@ -1,5 +1,5 @@
 from sc2.ids.unit_typeid import UnitTypeId
-import gp 
+import gp
 
 UNIT_MAPPING = {
     gp.Marine: UnitTypeId.MARINE,

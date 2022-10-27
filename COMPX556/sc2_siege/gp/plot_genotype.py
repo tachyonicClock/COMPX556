@@ -2,8 +2,9 @@ from PIL import Image
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 import gp
-from gp.rectangle import  Rectangle
+from gp.rectangle import Rectangle
 import io
+
 
 def fig2img(fig):
     """Convert a Matplotlib figure to a PIL Image and return it"""

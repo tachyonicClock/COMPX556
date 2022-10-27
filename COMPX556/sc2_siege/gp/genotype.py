@@ -3,6 +3,7 @@ from copy import deepcopy
 from gp.rectangle import Rectangle
 import re
 
+
 class BadGenotype(Exception):
     pass
 
@@ -151,7 +152,6 @@ class Composite(Gene):
     def size(self) -> int:
         """Return the size of this gene"""
         return sum(child.size() for child in self._children) + 1
-        
 
 
 class Infantry(Leaf):
@@ -240,9 +240,10 @@ class Bunker(Composite):
     def __str__(self) -> str:
         return "B(" + ''.join(map(lambda x: x.__str__(), self._children)) + ")"
 
-    
+
 class ParseFail(Exception):
     pass
+
 
 def from_str(stringified_genotype: str) -> Gene:
     """Parses a stringified genotype into a genotype tree"""
@@ -271,7 +272,7 @@ def from_str(stringified_genotype: str) -> Gene:
                 r, child = result
                 if child is None:
                     return None
-                
+
                 children.append(child)
 
             if (e := _consume_token(r, ")")) is not None:
@@ -293,7 +294,6 @@ def from_str(stringified_genotype: str) -> Gene:
     x, gene = _parse(stringified_genotype, parent=None)
     assert len(x) == 0, f"Failed to parse {x}"
     return gene
-
 
 
 INFANTRY = [
