@@ -26,8 +26,10 @@ def pretty_print(pop: Population, to_fitness_score: SquashFitness):
 @click.option('--purge', default=False, is_flag=True, help='Remove all existing results')
 @click.option('--num-cpus', default=1, help='Number of CPUs to use')
 @click.option('--resume', default=False, is_flag=True, help='Continue from last generation')
-def main(purge: bool, num_cpus: int, resume: bool):
+@click.option('--num-generations', default=100, help='Number of generations to run')
+def main(purge: bool, num_cpus: int, resume: bool, num_generations: int):
     cfg = Config()
+    cfg.generations = num_generations
     ray.init(num_cpus=num_cpus)
 
     if purge and resume:

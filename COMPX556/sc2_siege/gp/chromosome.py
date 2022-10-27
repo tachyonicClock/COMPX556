@@ -188,6 +188,10 @@ class Empty(Infantry):
     def __str__(self) -> str:
         return "E"
 
+    def size(self) -> int:
+        """Return the size of this gene"""
+        return 0
+
 
 class SiegeTank(Leaf):
     """A factory unit that can deal with swarms"""
